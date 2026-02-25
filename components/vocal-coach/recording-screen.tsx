@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Upload, Mic, Pause, Square, Music2, Trophy } from "lucide-react"
+import { Upload, Mic, ArrowLeft, Check, Music2, Trophy } from "lucide-react"
 
 interface RecordingScreenProps {
   onComplete: (duration: number) => void
@@ -12,7 +12,8 @@ interface RecordingScreenProps {
 
 export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCount }: RecordingScreenProps) {
   const [seconds, setSeconds] = useState(0)
-  const [phase, setPhase] = useState<"idle" | "recording" | "paused">("idle")
+  const [phase, setPhase] = useState<"idle" | "recording">("idle")
+  const [showConfirm, setShowConfirm] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const startRecording = useCallback(() => {
@@ -20,31 +21,39 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
     setSeconds(0)
   }, [])
 
-  const pauseRecording = useCallback(() => {
-    setPhase("paused")
+  const goBack = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
+    setPhase("idle")
+    setSeconds(0)
   }, [])
 
-  const resumeRecording = useCallback(() => {
-    setPhase("recording")
+  const requestFinish = useCallback(() => {
+    setShowConfirm(true)
   }, [])
 
-  const finishRecording = useCallback(() => {
+  const confirmFinish = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
+    setShowConfirm(false)
     setPhase("idle")
     onComplete(seconds)
   }, [onComplete, seconds])
 
+  const cancelFinish = useCallback(() => {
+    setShowConfirm(false)
+  }, [])
+
   useEffect(() => {
-    if (phase === "recording") {
+    if (phase === "recording" && !showConfirm) {
       intervalRef.current = setInterval(() => {
         setSeconds((s) => s + 1)
       }, 1000)
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [phase])
+  }, [phase, showConfirm])
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60).toString().padStart(2, "0")
@@ -52,7 +61,10 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
     return `${mins}:${secs}`
   }
 
-  const isActive = phase === "recording" || phase === "paused"
+  const isRecording = phase === "recording"
+
+  // Generate fake waveform bars for visualization
+  const waveformBars = 24
 
   return (
     <div className="flex min-h-dvh flex-col bg-background px-6 pb-8 pt-12">
@@ -79,81 +91,77 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
       </div>
 
       {/* Tips Card */}
-      <div className="mt-6 rounded-3xl bg-card p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
-            <Music2 className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-lg font-bold text-foreground">今日小贴士</p>
-            <p className="mt-1 text-base leading-relaxed text-muted-foreground">
-              唱歌前先做几次深呼吸，可以帮助放松喉咙，让声音更加饱满圆润。
-            </p>
+      {!isRecording && (
+        <div className="mt-6 rounded-3xl bg-card p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+              <Music2 className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-foreground">今日小贴士</p>
+              <p className="mt-1 text-base leading-relaxed text-muted-foreground">
+                唱歌前先做几次深呼吸，可以帮助放松喉咙，让声音更加饱满圆润。
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Center Visualization */}
       <div className="flex flex-1 flex-col items-center justify-center">
-        <div className="relative flex items-center justify-center">
-          {/* Ripple animations when recording */}
-          {phase === "recording" && (
-            <>
-              <div className="absolute h-72 w-72 animate-ping rounded-full bg-primary/5" style={{ animationDuration: "3s" }} />
-              <div className="absolute h-60 w-60 animate-ping rounded-full bg-primary/8" style={{ animationDuration: "2.5s", animationDelay: "0.5s" }} />
-              <div className="absolute h-52 w-52 animate-pulse rounded-full bg-primary/10" style={{ animationDuration: "2s" }} />
-            </>
-          )}
+        {isRecording ? (
+          /* --- Recording State: Rich Waveform Visualization --- */
+          <div className="flex w-full flex-col items-center gap-6">
+            {/* Time display */}
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-6xl font-black tracking-wider text-foreground tabular-nums">
+                {formatTime(seconds)}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+                </span>
+                <span className="text-base font-medium text-primary">录音中</span>
+              </div>
+            </div>
 
-          {/* Paused gentle pulse */}
-          {phase === "paused" && (
-            <div className="absolute h-52 w-52 animate-pulse rounded-full bg-muted/60" style={{ animationDuration: "3s" }} />
-          )}
+            {/* Waveform visualization */}
+            <div className="flex h-32 w-full items-center justify-center gap-[3px] rounded-3xl bg-card p-6 shadow-sm">
+              {Array.from({ length: waveformBars }).map((_, i) => (
+                <WaveBar key={i} index={i} isActive={!showConfirm} />
+              ))}
+            </div>
 
-          {/* Main visualization circle - display only, no click interaction */}
-          <div
-            className={`relative z-10 flex h-44 w-44 flex-col items-center justify-center rounded-full transition-all duration-700 ${
-              phase === "recording"
-                ? "bg-primary/15 shadow-[0_0_80px_rgba(247,128,0,0.25)]"
-                : phase === "paused"
-                  ? "bg-muted shadow-lg"
-                  : "bg-secondary shadow-sm"
-            }`}
-          >
-            {isActive ? (
-              <>
-                <span className="text-4xl font-black tracking-wider text-foreground">
-                  {formatTime(seconds)}
-                </span>
-                <span className="mt-1 text-sm font-medium text-muted-foreground">
-                  {phase === "recording" ? "录音中" : "已暂停"}
-                </span>
-              </>
-            ) : (
-              <>
-                <Mic className="h-10 w-10 text-muted-foreground/60" />
-                <span className="mt-2 text-base font-medium text-muted-foreground">
-                  准备就绪
-                </span>
-              </>
-            )}
+            {/* Recording hint */}
+            <p className="text-center text-lg font-medium text-muted-foreground">
+              {showConfirm ? "录音已暂停" : "正在聆听，请尽情歌唱..."}
+            </p>
           </div>
-        </div>
-
-        {/* Status text */}
-        <p className="mt-8 text-center text-lg font-medium text-muted-foreground transition-all duration-500">
-          {phase === "recording"
-            ? "老师正在听，请尽情歌唱..."
-            : phase === "paused"
-              ? "已暂停录音，可继续或结束"
-              : "点击下方按钮开始练歌"}
-        </p>
+        ) : (
+          /* --- Idle State: Warm Invitation --- */
+          <div className="flex flex-col items-center gap-6">
+            {/* Decorative mic visual */}
+            <div className="relative flex items-center justify-center">
+              {/* Outer soft ring */}
+              <div className="absolute h-52 w-52 rounded-full bg-secondary/60" />
+              {/* Middle ring */}
+              <div className="absolute h-40 w-40 rounded-full bg-card shadow-sm" />
+              {/* Inner content */}
+              <div className="relative z-10 flex h-28 w-28 flex-col items-center justify-center rounded-full bg-primary/10">
+                <Mic className="h-12 w-12 text-primary" />
+              </div>
+            </div>
+            <p className="text-center text-xl font-bold text-foreground">准备好了吗？</p>
+            <p className="text-center text-base text-muted-foreground">录一首歌，让AI老师为您打分</p>
+          </div>
+        )}
       </div>
 
       {/* Bottom Controls */}
       <div className="space-y-4 pb-2">
         {phase === "idle" ? (
-          /* Idle: Two buttons - Record + Upload */
+          /* --- Idle: Record (center) + Upload (right) --- */
           <div className="flex items-center gap-3">
             <button
               onClick={startRecording}
@@ -171,44 +179,89 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
             </button>
           </div>
         ) : (
-          /* Recording/Paused: Control row */
+          /* --- Recording: Back (left) + Finish (right) - consistent positions --- */
           <div className="flex items-center gap-3">
-            {/* Pause / Resume */}
             <button
-              onClick={phase === "recording" ? pauseRecording : resumeRecording}
-              className="flex flex-1 items-center justify-center gap-2 rounded-3xl bg-card py-5 text-xl font-bold text-foreground shadow-sm transition-all active:scale-[0.98]"
+              onClick={goBack}
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-3xl bg-card py-5 shadow-sm transition-all active:scale-[0.98]"
             >
-              {phase === "recording" ? (
-                <>
-                  <Pause className="h-5 w-5" />
-                  <span>暂停</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="h-5 w-5 text-primary" />
-                  <span>继续</span>
-                </>
-              )}
+              <ArrowLeft className="h-6 w-6 text-foreground" />
+              <span className="text-sm font-bold text-foreground">返回</span>
             </button>
-
-            {/* Finish */}
             <button
-              onClick={finishRecording}
+              onClick={requestFinish}
               disabled={seconds < 3}
-              className="flex flex-[1.5] items-center justify-center gap-2 rounded-3xl bg-primary py-5 text-xl font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
+              className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
             >
-              <Square className="h-5 w-5" />
+              <Check className="h-6 w-6" />
               <span>完成录歌</span>
             </button>
           </div>
         )}
 
-        {isActive && seconds < 3 && (
+        {isRecording && seconds < 3 && (
           <p className="text-center text-base text-muted-foreground">
             至少录制3秒哦
           </p>
         )}
       </div>
+
+      {/* Confirm Dialog Overlay */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 backdrop-blur-sm">
+          <div
+            className="mx-4 mb-8 w-full max-w-md animate-in slide-in-from-bottom-4 duration-300 rounded-3xl bg-card p-6 shadow-xl"
+          >
+            <p className="text-center text-2xl font-bold text-foreground">确认提交作品？</p>
+            <p className="mt-2 text-center text-base text-muted-foreground">
+              {'本次录制 '}
+              <span className="font-bold text-foreground">{formatTime(seconds)}</span>
+              {'，提交后AI老师将为您评分'}
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={cancelFinish}
+                className="flex flex-1 items-center justify-center rounded-2xl bg-secondary py-4 text-lg font-bold text-foreground transition-all active:scale-[0.98]"
+              >
+                继续录制
+              </button>
+              <button
+                onClick={confirmFinish}
+                className="flex flex-1 items-center justify-center rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98]"
+              >
+                确认提交
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+/* Animated waveform bar */
+function WaveBar({ index, isActive }: { index: number; isActive: boolean }) {
+  const [height, setHeight] = useState(20)
+
+  useEffect(() => {
+    if (!isActive) {
+      setHeight(12)
+      return
+    }
+    const interval = setInterval(() => {
+      // Create organic-looking wave pattern
+      const base = 16
+      const wave = Math.sin(Date.now() / 300 + index * 0.6) * 20
+      const random = Math.random() * 24
+      setHeight(Math.max(8, base + wave + random))
+    }, 120 + index * 8)
+    return () => clearInterval(interval)
+  }, [index, isActive])
+
+  return (
+    <div
+      className="w-1.5 rounded-full bg-primary/70 transition-all duration-150"
+      style={{ height: `${height}px` }}
+    />
   )
 }
