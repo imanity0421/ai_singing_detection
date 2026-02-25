@@ -62,9 +62,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
   }
 
   const isRecording = phase === "recording"
-
-  // Generate fake waveform bars for visualization
-  const waveformBars = 24
+  const waveformBars = 28
 
   return (
     <div className="flex min-h-dvh flex-col bg-background px-6 pb-8 pt-12">
@@ -90,7 +88,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         </button>
       </div>
 
-      {/* Tips Card */}
+      {/* Tips Card - only in idle */}
       {!isRecording && (
         <div className="mt-6 rounded-3xl bg-card p-5 shadow-sm">
           <div className="flex items-start gap-3">
@@ -110,10 +108,10 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
       {/* Center Visualization */}
       <div className="flex flex-1 flex-col items-center justify-center">
         {isRecording ? (
-          /* --- Recording State: Rich Waveform Visualization --- */
-          <div className="flex w-full flex-col items-center gap-6">
-            {/* Time display */}
-            <div className="flex flex-col items-center gap-1">
+          /* --- Recording State --- */
+          <div className="flex w-full flex-col items-center gap-8">
+            {/* Timer */}
+            <div className="flex flex-col items-center gap-2">
               <span className="text-6xl font-black tracking-wider text-foreground tabular-nums">
                 {formatTime(seconds)}
               </span>
@@ -122,35 +120,41 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
                 </span>
-                <span className="text-base font-medium text-primary">录音中</span>
+                <span className="text-base font-medium text-primary">
+                  {showConfirm ? "已暂停" : "录音中"}
+                </span>
               </div>
             </div>
 
-            {/* Waveform visualization */}
-            <div className="flex h-32 w-full items-center justify-center gap-[3px] rounded-3xl bg-card p-6 shadow-sm">
+            {/* Waveform Card */}
+            <div className="flex h-36 w-full items-center justify-center gap-[3px] rounded-3xl bg-card p-6 shadow-sm">
               {Array.from({ length: waveformBars }).map((_, i) => (
-                <WaveBar key={i} index={i} isActive={!showConfirm} />
+                <WaveBar key={i} index={i} isActive={phase === "recording" && !showConfirm} />
               ))}
             </div>
 
-            {/* Recording hint */}
             <p className="text-center text-lg font-medium text-muted-foreground">
               {showConfirm ? "录音已暂停" : "正在聆听，请尽情歌唱..."}
             </p>
           </div>
         ) : (
-          /* --- Idle State: Warm Invitation --- */
-          <div className="flex flex-col items-center gap-6">
-            {/* Decorative mic visual */}
-            <div className="relative flex items-center justify-center">
-              {/* Outer soft ring */}
-              <div className="absolute h-52 w-52 rounded-full bg-secondary/60" />
-              {/* Middle ring */}
-              <div className="absolute h-40 w-40 rounded-full bg-card shadow-sm" />
-              {/* Inner content */}
-              <div className="relative z-10 flex h-28 w-28 flex-col items-center justify-center rounded-full bg-primary/10">
-                <Mic className="h-12 w-12 text-primary" />
+          /* --- Idle State: Disc-style visual --- */
+          <div className="flex flex-col items-center gap-5">
+            {/* Vinyl disc visual */}
+            <div className="relative flex h-56 w-56 items-center justify-center">
+              {/* Outer disc - looks like a vinyl record */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-secondary via-border to-secondary shadow-lg" />
+              {/* Track grooves - subtle rings */}
+              <div className="absolute inset-3 rounded-full border border-muted-foreground/10" />
+              <div className="absolute inset-6 rounded-full border border-muted-foreground/8" />
+              <div className="absolute inset-10 rounded-full border border-muted-foreground/6" />
+              <div className="absolute inset-14 rounded-full border border-muted-foreground/5" />
+              {/* Center label */}
+              <div className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full bg-primary shadow-md">
+                <Mic className="h-9 w-9 text-primary-foreground" />
               </div>
+              {/* Spinning note decorations */}
+              <NoteOrbit />
             </div>
             <p className="text-center text-xl font-bold text-foreground">准备好了吗？</p>
             <p className="text-center text-base text-muted-foreground">录一首歌，让AI老师为您打分</p>
@@ -158,10 +162,18 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         )}
       </div>
 
-      {/* Bottom Controls */}
-      <div className="space-y-4 pb-2">
+      {/* Bottom Controls - fixed height region so buttons don't shift */}
+      <div className="flex flex-col gap-3 pb-2" style={{ minHeight: "112px" }}>
+        {/* Hint row: always rendered to preserve height, invisible when not needed */}
+        <p
+          className={`text-center text-base text-muted-foreground transition-opacity ${
+            isRecording && seconds < 3 ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          至少录制3秒哦
+        </p>
+
         {phase === "idle" ? (
-          /* --- Idle: Record (center) + Upload (right) --- */
           <div className="flex items-center gap-3">
             <button
               onClick={startRecording}
@@ -179,7 +191,6 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
             </button>
           </div>
         ) : (
-          /* --- Recording: Back (left) + Finish (right) - consistent positions --- */
           <div className="flex items-center gap-3">
             <button
               onClick={goBack}
@@ -198,20 +209,12 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
             </button>
           </div>
         )}
-
-        {isRecording && seconds < 3 && (
-          <p className="text-center text-base text-muted-foreground">
-            至少录制3秒哦
-          </p>
-        )}
       </div>
 
       {/* Confirm Dialog Overlay */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 backdrop-blur-sm">
-          <div
-            className="mx-4 mb-8 w-full max-w-md animate-in slide-in-from-bottom-4 duration-300 rounded-3xl bg-card p-6 shadow-xl"
-          >
+          <div className="mx-4 mb-8 w-full max-w-md animate-in slide-in-from-bottom-4 duration-300 rounded-3xl bg-card p-6 shadow-xl">
             <p className="text-center text-2xl font-bold text-foreground">确认提交作品？</p>
             <p className="mt-2 text-center text-base text-muted-foreground">
               {'本次录制 '}
@@ -239,6 +242,23 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
   )
 }
 
+/* Spinning music notes around the disc */
+function NoteOrbit() {
+  return (
+    <div className="absolute inset-0 animate-[spin_12s_linear_infinite]">
+      <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1 text-2xl text-primary/60">
+        <Music2 className="h-5 w-5" />
+      </span>
+      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1 text-2xl text-primary/40">
+        <Music2 className="h-4 w-4" />
+      </span>
+      <span className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 text-2xl text-primary/50">
+        <Music2 className="h-4 w-4" />
+      </span>
+    </div>
+  )
+}
+
 /* Animated waveform bar */
 function WaveBar({ index, isActive }: { index: number; isActive: boolean }) {
   const [height, setHeight] = useState(20)
@@ -249,7 +269,6 @@ function WaveBar({ index, isActive }: { index: number; isActive: boolean }) {
       return
     }
     const interval = setInterval(() => {
-      // Create organic-looking wave pattern
       const base = 16
       const wave = Math.sin(Date.now() / 300 + index * 0.6) * 20
       const random = Math.random() * 24
