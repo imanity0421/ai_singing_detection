@@ -2,48 +2,56 @@
 
 import { useState, useCallback } from "react"
 import { RecordingScreen } from "./recording-screen"
-import { ResultScreen } from "./result-screen"
+import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
+import { UploadDialog } from "./upload-dialog"
 
 type Screen = "recording" | "result" | "history"
 
 // Pre-populated demo records
 const initialRecords: HistoryRecord[] = [
-  { id: "demo-1", date: "2026年2月24日 14:30", score: 91, label: "卓越" },
-  { id: "demo-2", date: "2026年2月23日 10:15", score: 85, label: "优秀" },
-  { id: "demo-3", date: "2026年2月22日 16:00", score: 78, label: "良好" },
+  { id: "demo-1", date: "2026年2月24日 14:30", score: 91, label: "卓越", comment: "气息运用得很稳健，高音部分表现出色！" },
+  { id: "demo-2", date: "2026年2月23日 10:15", score: 85, label: "优秀", comment: "音色饱满明亮，情感表达很到位！" },
+  { id: "demo-3", date: "2026年2月22日 16:00", score: 78, label: "良好", comment: "嗓音状态非常好，节奏感掌握得很棒！" },
 ]
 
 export function VocalCoachApp() {
   const [screen, setScreen] = useState<Screen>("recording")
   const [lastDuration, setLastDuration] = useState(0)
   const [records, setRecords] = useState<HistoryRecord[]>(initialRecords)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
 
   const handleRecordingComplete = useCallback((duration: number) => {
     setLastDuration(duration)
-    setScreen("result")
+    // Show loading overlay on top of current screen
+    setIsLoading(true)
+    // After loading, transition to result
+    setTimeout(() => {
+      setScreen("result")
+      setIsLoading(false)
+    }, 2800)
   }, [])
 
   const handleRetry = useCallback(() => {
     setScreen("recording")
   }, [])
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback((evaluation: EvaluationResult) => {
     const now = new Date()
     const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
-    const score = Math.min(60 + Math.floor(lastDuration / 3) + Math.floor(Math.random() * 8), 99)
-    const label = score >= 90 ? "卓越" : score >= 80 ? "优秀" : score >= 70 ? "良好" : "继续加油"
 
     const newRecord: HistoryRecord = {
       id: `record-${Date.now()}`,
       date: dateStr,
-      score,
-      label,
+      score: evaluation.score,
+      label: evaluation.label,
+      comment: evaluation.comment,
     }
     setRecords((prev) => [newRecord, ...prev])
-    // Slight delay before going back to recording
-    setTimeout(() => setScreen("recording"), 100)
-  }, [lastDuration])
+    // Navigate to history (作品墙) to see the new record
+    setScreen("history")
+  }, [])
 
   const handleOpenHistory = useCallback(() => {
     setScreen("history")
@@ -53,8 +61,27 @@ export function VocalCoachApp() {
     setScreen("recording")
   }, [])
 
+  const handleOpenUpload = useCallback(() => {
+    setShowUpload(true)
+  }, [])
+
+  const handleCloseUpload = useCallback(() => {
+    setShowUpload(false)
+  }, [])
+
+  const handleUploadComplete = useCallback((duration: number) => {
+    setShowUpload(false)
+    setLastDuration(duration)
+    setIsLoading(true)
+    setTimeout(() => {
+      setScreen("result")
+      setIsLoading(false)
+    }, 2800)
+  }, [])
+
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">
+      {/* Screen transitions */}
       <div
         className={`transition-all duration-500 ease-in-out ${
           screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 absolute inset-0"
@@ -63,7 +90,9 @@ export function VocalCoachApp() {
         {screen === "recording" && (
           <RecordingScreen
             onComplete={handleRecordingComplete}
+            onUpload={handleOpenUpload}
             onOpenHistory={handleOpenHistory}
+            historyCount={records.length}
           />
         )}
       </div>
@@ -91,6 +120,16 @@ export function VocalCoachApp() {
           <HistoryScreen records={records} onBack={handleBackFromHistory} />
         )}
       </div>
+
+      {/* Loading Overlay - renders on top of everything */}
+      <LoadingOverlay visible={isLoading} />
+
+      {/* Upload Dialog */}
+      <UploadDialog
+        visible={showUpload}
+        onClose={handleCloseUpload}
+        onUploadComplete={handleUploadComplete}
+      />
     </div>
   )
 }
