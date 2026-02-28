@@ -28,13 +28,66 @@ export interface EvaluationResult {
   comment: string
 }
 
-// Simulated AI evaluation
+/* ---------- Grade palette: A / S / SS / SSS (no B/C — always positive) ---------- */
+const GRADE_CONFIG: Record<
+  string,
+  {
+    color: string
+    colorEnd: string
+    glow: string
+    ring: string
+    subtitle: string
+    cheer: string
+    /** Decorative ring count — higher grade → more ceremony */
+    rings: number
+  }
+> = {
+  SSS: {
+    color: "#B93A04",
+    colorEnd: "#E86A20",
+    glow: "rgba(185,58,4,0.24)",
+    ring: "rgba(185,58,4,0.38)",
+    subtitle: "超凡表现",
+    cheer: "惊艳全场！您就是天生的歌唱家！",
+    rings: 3,
+  },
+  SS: {
+    color: "#C85A00",
+    colorEnd: "#F09030",
+    glow: "rgba(200,90,0,0.20)",
+    ring: "rgba(200,90,0,0.32)",
+    subtitle: "卓越演唱",
+    cheer: "太棒了，您的声音充满故事感！",
+    rings: 2,
+  },
+  S: {
+    color: "#D97B1A",
+    colorEnd: "#F0B050",
+    glow: "rgba(217,123,26,0.16)",
+    ring: "rgba(217,123,26,0.26)",
+    subtitle: "精彩绝伦",
+    cheer: "非常出色，继续保持这份热情！",
+    rings: 2,
+  },
+  A: {
+    color: "#D4922E",
+    colorEnd: "#F0C868",
+    glow: "rgba(212,146,46,0.14)",
+    ring: "rgba(212,146,46,0.22)",
+    subtitle: "出色发挥",
+    cheer: "表现得真好，越唱越有味道！",
+    rings: 1,
+  },
+}
+
+// Score floor = 72, guaranteeing every user at least an A
 function generateEvaluation(duration: number): EvaluationResult {
-  const baseScore = Math.min(60 + Math.floor(duration / 3), 98)
-  const score = Math.min(baseScore + Math.floor(Math.random() * 8), 99)
-  const breathStability = Math.min(50 + Math.floor(Math.random() * 45), 95)
-  const toneBrightness = Math.min(55 + Math.floor(Math.random() * 40), 95)
-  const label = score >= 90 ? "S" : score >= 80 ? "A" : score >= 70 ? "B" : "C"
+  const rawBase = Math.min(60 + Math.floor(duration / 3), 98)
+  const raw = Math.min(rawBase + Math.floor(Math.random() * 8), 99)
+  const score = Math.max(raw, 72)
+  const breathStability = Math.min(60 + Math.floor(Math.random() * 35), 95)
+  const toneBrightness = Math.min(60 + Math.floor(Math.random() * 35), 95)
+  const label = score >= 93 ? "SSS" : score >= 85 ? "SS" : score >= 78 ? "S" : "A"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -135,13 +188,7 @@ const timbreTags = [
   { name: "甜美", pct: 30, bg: "#C4A882" },
 ]
 
-/* ---------- Cheering line based on score ---------- */
-function getCheerLine(score: number) {
-  if (score >= 90) return "太棒了，您的声音充满故事感！"
-  if (score >= 80) return "非常出色，继续保持这份热情！"
-  if (score >= 70) return "表现得很稳，再练练会更好！"
-  return "每一次开口都是进步，加油！"
-}
+
 
 export function ResultScreen({
   duration,
@@ -198,13 +245,8 @@ export function ResultScreen({
     if (evaluation) onSave(evaluation)
   }, [evaluation, onSave])
 
-  const scoreLabel = evaluation?.label ?? "S"
-  const scoreLabelColor =
-    scoreLabel === "S"
-      ? "#D96B00"
-      : scoreLabel === "A"
-        ? "#E8A040"
-        : "#8A7D6F"
+  const scoreLabel = evaluation?.label ?? "A"
+  const grade = GRADE_CONFIG[scoreLabel] ?? GRADE_CONFIG.A
 
   return (
     <div
@@ -215,25 +257,98 @@ export function ResultScreen({
         <>
           {/* ==================== PART 1: Emotion & Core Conclusion ==================== */}
 
-          {/* Score Hero */}
-          <div className="flex flex-col items-center gap-3 px-6 pt-12 pb-2">
-            {/* Level badge */}
+          {/* Score Hero — warm radial glow */}
+          <div
+            className="flex flex-col items-center gap-2 px-6 pt-10 pb-4"
+            style={{
+              background: `radial-gradient(ellipse 80% 60% at 50% 22%, ${grade.glow} 0%, transparent 100%)`,
+            }}
+          >
+            {/* Achievement badge — layered rings */}
             <div
-              className="flex h-20 w-20 items-center justify-center rounded-full"
+              className="relative flex items-center justify-center"
+              style={{ width: 140, height: 140 }}
+            >
+              {/* Soft halo */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  inset: -10,
+                  background: `radial-gradient(circle, ${grade.ring} 0%, transparent 70%)`,
+                  filter: "blur(10px)",
+                }}
+              />
+              {/* Extra ring 3 (SSS only) */}
+              {grade.rings >= 3 && (
+                <div
+                  className="absolute rounded-full"
+                  style={{ inset: -4, border: `2px solid ${grade.color}25` }}
+                />
+              )}
+              {/* Extra ring 2 (SS / SSS) */}
+              {grade.rings >= 2 && (
+                <div
+                  className="absolute rounded-full"
+                  style={{ inset: 2, border: `1.5px dashed ${grade.color}20` }}
+                />
+              )}
+              {/* Conic gradient ring */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  inset: 8,
+                  background: `conic-gradient(from 0deg, ${grade.color}20, ${grade.color}48, ${grade.color}20, ${grade.color}48, ${grade.color}20)`,
+                }}
+              />
+              {/* Inner fill */}
+              <div
+                className="absolute rounded-full"
+                style={{ inset: 12, background: `linear-gradient(150deg, ${grade.color}28, ${grade.colorEnd}18)` }}
+              />
+              {/* Central disc */}
+              <div
+                className="relative z-10 flex items-center justify-center rounded-full"
+                style={{
+                  width: 104,
+                  height: 104,
+                  background: `linear-gradient(150deg, color-mix(in srgb, ${grade.color} 13%, white), color-mix(in srgb, ${grade.colorEnd} 7%, white))`,
+                  boxShadow: `0 10px 36px ${grade.glow}, inset 0 2px 6px rgba(255,255,255,0.75), inset 0 -2px 4px ${grade.color}10`,
+                }}
+              >
+                <span
+                  className="font-black leading-none tracking-wide"
+                  style={{
+                    color: grade.color,
+                    fontSize: scoreLabel.length >= 3 ? 32 : scoreLabel.length === 2 ? 40 : 52,
+                    textShadow: `0 2px 12px ${grade.glow}`,
+                  }}
+                >
+                  {scoreLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Sub-label pill */}
+            <span
+              className="mt-1 rounded-full px-6 py-1.5 text-base font-bold tracking-widest"
               style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${scoreLabelColor} 15%, transparent), color-mix(in srgb, ${scoreLabelColor} 6%, transparent))`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${grade.color} 14%, transparent), color-mix(in srgb, ${grade.colorEnd} 10%, transparent))`,
+                color: grade.color,
+                boxShadow: `0 2px 8px ${grade.glow}`,
               }}
             >
-              <span className="text-5xl font-black" style={{ color: scoreLabelColor }}>
-                {scoreLabel}
-              </span>
-            </div>
-            <div className="flex items-baseline gap-1.5">
+              {grade.subtitle}
+            </span>
+
+            {/* Numeric score */}
+            <div className="mt-3 flex items-baseline gap-1.5">
               <span className="text-6xl font-black text-foreground">{animatedScore}</span>
               <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
-            <p className="max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
-              {getCheerLine(evaluation.score)}
+
+            {/* Cheer text */}
+            <p className="mt-1 max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
+              {grade.cheer}
             </p>
           </div>
 
@@ -257,17 +372,43 @@ export function ResultScreen({
             </div>
           </div>
 
-          {/* Chat Entry Button */}
+          {/* Chat Entry Button — subtle warm border + icon accent */}
           <div className="mx-5 mt-4">
             <button
               onClick={onOpenChat}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl py-4 transition-all active:scale-[0.98]"
-              style={{ backgroundColor: "#FEF5EB" }}
+              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl px-5 py-4 transition-all active:scale-[0.98]"
+              style={{
+                backgroundColor: "#FEF5EB",
+                border: "1.5px solid color-mix(in srgb, var(--primary) 18%, transparent)",
+              }}
             >
-              <MessageCircle className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold text-primary">
-                {"对点评有疑问？和AI老师聊聊"}
+              {/* Icon circle */}
+              <span
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
+                style={{
+                  background: "linear-gradient(135deg, var(--primary), #E8A040)",
+                  boxShadow: "0 2px 8px rgba(247,128,0,0.18)",
+                }}
+              >
+                <MessageCircle className="h-5 w-5 text-primary-foreground" />
               </span>
+              {/* Text */}
+              <span className="text-lg font-bold text-foreground">
+                {"对点评有疑问？"}
+                <span className="text-primary">{"和AI老师聊聊"}</span>
+              </span>
+              {/* Arrow */}
+              <svg
+                className="ml-auto h-5 w-5 flex-shrink-0 text-primary/50 transition-transform group-active:translate-x-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
             </button>
           </div>
 
