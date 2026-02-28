@@ -1,16 +1,16 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, ChevronRight } from "lucide-react"
+import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, ChevronRight, Lightbulb } from "lucide-react"
 
-const TIPS = [
-  "\u5531\u6B4C\u524D\u505A\u51E0\u6B21\u6DF1\u547C\u5438\uFF0C\u58F0\u97F3\u66F4\u52A0\u9971\u6EE1",
-  "\u7528\u8179\u90E8\u53D1\u529B\uFF0C\u5589\u5499\u4F1A\u66F4\u8F7B\u677E",
-  "\u5531\u9AD8\u97F3\u65F6\u60F3\u8C61\u58F0\u97F3\u5F80\u524D\u9001\uFF0C\u522B\u5F80\u4E0A\u62BD",
-  "\u6BCF\u5929\u7EC3\u4E60\u54FC\u9E23\uFF0C\u80FD\u6709\u6548\u6253\u5F00\u5171\u9E23",
-  "\u5531\u6B4C\u65F6\u4FDD\u6301\u5FAE\u7B11\uFF0C\u97F3\u8272\u4F1A\u66F4\u660E\u4EAE",
-  "\u591A\u559D\u6E29\u6C34\uFF0C\u5C11\u559D\u51B0\u6C34\uFF0C\u4FDD\u62A4\u597D\u55D3\u5B50",
-  "\u5531\u6162\u6B4C\u65F6\u6CE8\u610F\u6C14\u606F\u7684\u8FDE\u8D2F\u6027",
+const TIPS: { emoji: string; title: string; desc: string }[] = [
+  { emoji: "\uD83C\uDFA4", title: "\u6DF1\u547C\u5438\u70ED\u8EAB", desc: "\u5531\u6B4C\u524D\u505A\u51E0\u6B21\u6DF1\u547C\u5438\uFF0C\u58F0\u97F3\u66F4\u52A0\u9971\u6EE1\u5706\u6DA6" },
+  { emoji: "\uD83D\uDCAA", title: "\u8179\u5F0F\u53D1\u58F0", desc: "\u7528\u8179\u90E8\u53D1\u529B\u652F\u6491\u58F0\u97F3\uFF0C\u5589\u5499\u4F1A\u66F4\u8F7B\u677E" },
+  { emoji: "\uD83C\uDFB5", title: "\u9AD8\u97F3\u6280\u5DE7", desc: "\u5531\u9AD8\u97F3\u65F6\u60F3\u8C61\u58F0\u97F3\u5F80\u524D\u9001\uFF0C\u522B\u5F80\u4E0A\u62BD" },
+  { emoji: "\uD83D\uDE0A", title: "\u5FAE\u7B11\u6B4C\u5531", desc: "\u5531\u6B4C\u65F6\u4FDD\u6301\u5FAE\u7B11\uFF0C\u97F3\u8272\u4F1A\u66F4\u660E\u4EAE\u52A8\u542C" },
+  { emoji: "\uD83C\uDFB6", title: "\u54FC\u9E23\u7EC3\u4E60", desc: "\u6BCF\u5929\u54FC\u9E23\u51E0\u5206\u949F\uFF0C\u80FD\u6709\u6548\u6253\u5F00\u5171\u9E23\u8154\u4F53" },
+  { emoji: "\uD83D\uDCA7", title: "\u62A4\u55D3\u5C0F\u8D34\u58EB", desc: "\u591A\u559D\u6E29\u6C34\u5C11\u559D\u51B0\u6C34\uFF0C\u4FDD\u62A4\u597D\u60A8\u7684\u55D3\u5B50" },
+  { emoji: "\uD83C\uDF2C\uFE0F", title: "\u6C14\u606F\u8FDE\u8D2F", desc: "\u5531\u6162\u6B4C\u65F6\u6CE8\u610F\u6C14\u606F\u8FDE\u8D2F\uFF0C\u4FDD\u6301\u6D41\u7545\u81EA\u7136" },
 ]
 
 interface RecordingScreenProps {
@@ -167,9 +167,9 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
           </div>
         ) : (
           /* --- Idle State: Disc-style visual --- */
-          <div className="flex flex-col items-center gap-5">
+          <div className="flex w-full flex-col items-center gap-5">
             {/* Vinyl disc visual */}
-            <div className="relative flex h-56 w-56 items-center justify-center">
+            <div className="relative flex h-48 w-48 items-center justify-center">
               {/* Outer disc - looks like a vinyl record */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-secondary via-border to-secondary shadow-lg" />
               {/* Track grooves - subtle rings */}
@@ -178,19 +178,45 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               <div className="absolute inset-10 rounded-full border border-muted-foreground/6" />
               <div className="absolute inset-14 rounded-full border border-muted-foreground/5" />
               {/* Center label */}
-              <div className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full bg-primary shadow-md">
-                <Mic className="h-9 w-9 text-primary-foreground" />
+              <div className="relative z-10 flex h-20 w-20 flex-col items-center justify-center rounded-full bg-primary shadow-md">
+                <Mic className="h-8 w-8 text-primary-foreground" />
               </div>
               {/* Spinning note decorations */}
               <NoteOrbit />
             </div>
+
             <p className="text-center text-xl font-bold text-foreground">{"\u51C6\u5907\u597D\u4E86\u5417\uFF1F"}</p>
-            <p
-              className={`text-center text-base text-muted-foreground transition-opacity duration-400 ${tipFade ? "opacity-100" : "opacity-0"}`}
+
+            {/* Tip Card with fade transition */}
+            <div
+              className={`w-full rounded-3xl bg-card p-5 shadow-sm transition-opacity duration-400 ${tipFade ? "opacity-100" : "opacity-0"}`}
               suppressHydrationWarning
             >
-              {TIPS[tipIndex]}
-            </p>
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-2xl">
+                  {TIPS[tipIndex].emoji}
+                </div>
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-bold text-primary">{"\u4ECA\u65E5\u5C0F\u8D34\u58EB"}</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">{TIPS[tipIndex].title}</p>
+                  <p className="text-base leading-relaxed text-muted-foreground">{TIPS[tipIndex].desc}</p>
+                </div>
+              </div>
+              {/* Dot indicators */}
+              <div className="mt-4 flex items-center justify-center gap-1.5">
+                {TIPS.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === tipIndex ? "w-5 bg-primary" : "w-1.5 bg-border"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
