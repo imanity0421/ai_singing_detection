@@ -45,14 +45,18 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
   // Rotate tips every 5 seconds with fade
   useEffect(() => {
     if (phase !== "idle") return
+    let fadeTimeout: ReturnType<typeof setTimeout> | null = null
     const timer = setInterval(() => {
       setTipFade(false)
-      setTimeout(() => {
+      fadeTimeout = setTimeout(() => {
         setTipIndex((prev) => (prev + 1) % TIPS.length)
         setTipFade(true)
       }, 400)
     }, 5000)
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+      if (fadeTimeout) clearTimeout(fadeTimeout)
+    }
   }, [phase])
 
   const startRecording = useCallback(() => {

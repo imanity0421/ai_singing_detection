@@ -44,10 +44,40 @@ export function VocalCoachApp() {
   // Track which screens have been visited so we can lazy-mount them
   const visitedRef = useRef<Set<Screen>>(new Set(["recording", readSavedScreen()]))
 
+  // Centralized timer refs - cancelable on unmount or re-trigger
+  const loadingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+  const clearLoadingTimers = useCallback(() => {
+    loadingTimersRef.current.forEach(clearTimeout)
+    loadingTimersRef.current = []
+  }, [])
+
+  // Cleanup all loading timers on unmount
+  useEffect(() => clearLoadingTimers, [clearLoadingTimers])
+
   const navigateTo = useCallback((target: Screen) => {
     visitedRef.current.add(target)
     setScreen(target)
   }, [])
+
+  // Shared loading sequence: upload -> analyze -> navigate to result
+  const startLoadingSequence = useCallback((duration: number) => {
+    // Cancel any existing loading timers first
+    clearLoadingTimers()
+    setLastDuration(duration)
+    setLoadingStage("uploading")
+    setIsLoading(true)
+
+    const t1 = setTimeout(() => {
+      setLoadingStage("analyzing")
+    }, 1500)
+
+    const t2 = setTimeout(() => {
+      setIsLoading(false)
+      navigateTo("result")
+    }, 3200)
+
+    loadingTimersRef.current = [t1, t2]
+  }, [clearLoadingTimers, navigateTo])
 
   const handleOpenChat = useCallback((fromResult = false) => {
     setChatFromResult(fromResult)
@@ -60,20 +90,8 @@ export function VocalCoachApp() {
   }, [prevScreen])
 
   const handleRecordingComplete = useCallback((duration: number) => {
-    setLastDuration(duration)
-    // Stage 1: uploading
-    setLoadingStage("uploading")
-    setIsLoading(true)
-    // Stage 2: analyzing (after upload finishes)
-    setTimeout(() => {
-      setLoadingStage("analyzing")
-    }, 1800)
-    // Done: transition to result
-    setTimeout(() => {
-      navigateTo("result")
-      setIsLoading(false)
-    }, 4200)
-  }, [navigateTo])
+    startLoadingSequence(duration)
+  }, [startLoadingSequence])
 
   const handleRetry = useCallback(() => {
     navigateTo("recording")
@@ -112,17 +130,8 @@ export function VocalCoachApp() {
 
   const handleUploadComplete = useCallback((duration: number) => {
     setShowUpload(false)
-    setLastDuration(duration)
-    setLoadingStage("uploading")
-    setIsLoading(true)
-    setTimeout(() => {
-      setLoadingStage("analyzing")
-    }, 1800)
-    setTimeout(() => {
-      navigateTo("result")
-      setIsLoading(false)
-    }, 4200)
-  }, [navigateTo])
+    startLoadingSequence(duration)
+  }, [startLoadingSequence])
 
   // Helper: whether a screen should be mounted (once visited, stays mounted)
   const shouldMount = (s: Screen) => visitedRef.current.has(s) || screen === s
@@ -154,6 +163,7 @@ export function VocalCoachApp() {
         {shouldMount("result") && (
           <ResultScreen
             duration={lastDuration}
+            active={screen === "result"}
             onRetry={handleRetry}
             onSave={handleSave}
             onOpenChat={() => handleOpenChat(true)}

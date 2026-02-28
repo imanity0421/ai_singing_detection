@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { RotateCcw, Save, Sparkles, MessageCircle, Upload } from "lucide-react"
 
 interface ResultScreenProps {
   duration: number
+  active: boolean
   onRetry: () => void
   onSave: (evaluation: EvaluationResult) => void
   onOpenChat: () => void
@@ -43,21 +44,33 @@ function generateEvaluation(duration: number): EvaluationResult {
   }
 }
 
-export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultScreenProps) {
+export function ResultScreen({ duration, active, onRetry, onSave, onOpenChat }: ResultScreenProps) {
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null)
   const [animatedScore, setAnimatedScore] = useState(0)
   const [animatedBreath, setAnimatedBreath] = useState(0)
   const [animatedTone, setAnimatedTone] = useState(0)
   const [showResult, setShowResult] = useState(false)
 
-  // Generate evaluation immediately - loading overlay in parent handles the wait
+  // Only run effects when screen becomes active, reset on new entry
+  const prevActiveRef = useRef(false)
   useEffect(() => {
-    const result = generateEvaluation(duration)
-    setEvaluation(result)
-    // Brief delay just for the fade-in animation to feel smooth
-    const timer = setTimeout(() => setShowResult(true), 200)
-    return () => clearTimeout(timer)
-  }, [duration])
+    if (active && !prevActiveRef.current) {
+      // Freshly navigated here: generate new evaluation & reset animations
+      setShowResult(false)
+      setAnimatedScore(0)
+      setAnimatedBreath(0)
+      setAnimatedTone(0)
+
+      const result = generateEvaluation(duration)
+      setEvaluation(result)
+      const timer = setTimeout(() => setShowResult(true), 200)
+      prevActiveRef.current = true
+      return () => clearTimeout(timer)
+    }
+    if (!active) {
+      prevActiveRef.current = false
+    }
+  }, [active, duration])
 
   // Animate score counting up
   useEffect(() => {
