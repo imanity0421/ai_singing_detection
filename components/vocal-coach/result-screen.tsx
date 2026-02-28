@@ -28,55 +28,53 @@ export interface EvaluationResult {
   comment: string
 }
 
-/* ---------- Grade palette: A / S / SS / SSS (no B/C — always positive) ---------- */
+/* ---------- Grade palette: A / S / SS / SSS ---------- */
 const GRADE_CONFIG: Record<
   string,
   {
-    color: string
-    colorEnd: string
+    /** Main accent for the disc gradient start */
+    from: string
+    /** Disc gradient end */
+    to: string
+    /** Soft glow behind the disc */
     glow: string
-    ring: string
+    /** Text colour inside the disc */
+    text: string
     subtitle: string
     cheer: string
-    /** Decorative ring count — higher grade → more ceremony */
-    rings: number
   }
 > = {
   SSS: {
-    color: "#B93A04",
-    colorEnd: "#E86A20",
-    glow: "rgba(185,58,4,0.24)",
-    ring: "rgba(185,58,4,0.38)",
+    from: "#C04000",
+    to: "#E87430",
+    glow: "rgba(192,64,0,0.28)",
+    text: "#FFFFFF",
     subtitle: "超凡表现",
     cheer: "惊艳全场！您就是天生的歌唱家！",
-    rings: 3,
   },
   SS: {
-    color: "#C85A00",
-    colorEnd: "#F09030",
-    glow: "rgba(200,90,0,0.20)",
-    ring: "rgba(200,90,0,0.32)",
+    from: "#D06800",
+    to: "#F09840",
+    glow: "rgba(208,104,0,0.22)",
+    text: "#FFFFFF",
     subtitle: "卓越演唱",
     cheer: "太棒了，您的声音充满故事感！",
-    rings: 2,
   },
   S: {
-    color: "#D97B1A",
-    colorEnd: "#F0B050",
-    glow: "rgba(217,123,26,0.16)",
-    ring: "rgba(217,123,26,0.26)",
+    from: "#DA8A18",
+    to: "#F0B850",
+    glow: "rgba(218,138,24,0.18)",
+    text: "#FFFFFF",
     subtitle: "精彩绝伦",
     cheer: "非常出色，继续保持这份热情！",
-    rings: 2,
   },
   A: {
-    color: "#D4922E",
-    colorEnd: "#F0C868",
-    glow: "rgba(212,146,46,0.14)",
-    ring: "rgba(212,146,46,0.22)",
+    from: "#D8A030",
+    to: "#F0CC68",
+    glow: "rgba(216,160,48,0.16)",
+    text: "#FFFFFF",
     subtitle: "出色发挥",
     cheer: "表现得真好，越唱越有味道！",
-    rings: 1,
   },
 }
 
@@ -257,70 +255,33 @@ export function ResultScreen({
         <>
           {/* ==================== PART 1: Emotion & Core Conclusion ==================== */}
 
-          {/* Score Hero — warm radial glow */}
-          <div
-            className="flex flex-col items-center gap-2 px-6 pt-10 pb-4"
-            style={{
-              background: `radial-gradient(ellipse 80% 60% at 50% 22%, ${grade.glow} 0%, transparent 100%)`,
-            }}
-          >
-            {/* Achievement badge — layered rings */}
-            <div
-              className="relative flex items-center justify-center"
-              style={{ width: 140, height: 140 }}
-            >
-              {/* Soft halo */}
+          {/* ---- Score Hero ---- */}
+          <div className="flex flex-col items-center px-6 pt-12 pb-6">
+            {/* Clean medal disc — single gradient, no busy rings */}
+            <div className="relative">
+              {/* Soft glow */}
               <div
-                className="absolute rounded-full"
+                className="absolute -inset-5 rounded-full"
                 style={{
-                  inset: -10,
-                  background: `radial-gradient(circle, ${grade.ring} 0%, transparent 70%)`,
-                  filter: "blur(10px)",
+                  background: `radial-gradient(circle, ${grade.glow} 0%, transparent 70%)`,
+                  filter: "blur(16px)",
                 }}
               />
-              {/* Extra ring 3 (SSS only) */}
-              {grade.rings >= 3 && (
-                <div
-                  className="absolute rounded-full"
-                  style={{ inset: -4, border: `2px solid ${grade.color}25` }}
-                />
-              )}
-              {/* Extra ring 2 (SS / SSS) */}
-              {grade.rings >= 2 && (
-                <div
-                  className="absolute rounded-full"
-                  style={{ inset: 2, border: `1.5px dashed ${grade.color}20` }}
-                />
-              )}
-              {/* Conic gradient ring */}
+              {/* Disc */}
               <div
-                className="absolute rounded-full"
+                className="relative flex items-center justify-center rounded-full"
                 style={{
-                  inset: 8,
-                  background: `conic-gradient(from 0deg, ${grade.color}20, ${grade.color}48, ${grade.color}20, ${grade.color}48, ${grade.color}20)`,
-                }}
-              />
-              {/* Inner fill */}
-              <div
-                className="absolute rounded-full"
-                style={{ inset: 12, background: `linear-gradient(150deg, ${grade.color}28, ${grade.colorEnd}18)` }}
-              />
-              {/* Central disc */}
-              <div
-                className="relative z-10 flex items-center justify-center rounded-full"
-                style={{
-                  width: 104,
-                  height: 104,
-                  background: `linear-gradient(150deg, color-mix(in srgb, ${grade.color} 13%, white), color-mix(in srgb, ${grade.colorEnd} 7%, white))`,
-                  boxShadow: `0 10px 36px ${grade.glow}, inset 0 2px 6px rgba(255,255,255,0.75), inset 0 -2px 4px ${grade.color}10`,
+                  width: 120,
+                  height: 120,
+                  background: `linear-gradient(145deg, ${grade.from}, ${grade.to})`,
+                  boxShadow: `0 8px 28px ${grade.glow}, inset 0 1px 2px rgba(255,255,255,0.35)`,
                 }}
               >
                 <span
-                  className="font-black leading-none tracking-wide"
+                  className="font-black leading-none tracking-wider"
                   style={{
-                    color: grade.color,
-                    fontSize: scoreLabel.length >= 3 ? 32 : scoreLabel.length === 2 ? 40 : 52,
-                    textShadow: `0 2px 12px ${grade.glow}`,
+                    color: grade.text,
+                    fontSize: scoreLabel.length >= 3 ? 30 : scoreLabel.length === 2 ? 38 : 48,
                   }}
                 >
                   {scoreLabel}
@@ -328,26 +289,25 @@ export function ResultScreen({
               </div>
             </div>
 
-            {/* Sub-label pill */}
+            {/* Subtitle pill */}
             <span
-              className="mt-1 rounded-full px-6 py-1.5 text-base font-bold tracking-widest"
+              className="mt-4 rounded-full px-5 py-1 text-sm font-bold tracking-widest"
               style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${grade.color} 14%, transparent), color-mix(in srgb, ${grade.colorEnd} 10%, transparent))`,
-                color: grade.color,
-                boxShadow: `0 2px 8px ${grade.glow}`,
+                backgroundColor: `color-mix(in srgb, ${grade.from} 10%, transparent)`,
+                color: grade.from,
               }}
             >
               {grade.subtitle}
             </span>
 
             {/* Numeric score */}
-            <div className="mt-3 flex items-baseline gap-1.5">
-              <span className="text-6xl font-black text-foreground">{animatedScore}</span>
+            <div className="mt-4 flex items-baseline gap-1">
+              <span className="text-7xl font-black text-foreground">{animatedScore}</span>
               <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
 
             {/* Cheer text */}
-            <p className="mt-1 max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
+            <p className="mt-2 max-w-[260px] text-center text-base leading-relaxed text-muted-foreground text-balance">
               {grade.cheer}
             </p>
           </div>
