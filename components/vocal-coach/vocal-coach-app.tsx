@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
@@ -8,6 +8,8 @@ import { UploadDialog } from "./upload-dialog"
 import { ChatScreen } from "./chat-screen"
 
 type Screen = "recording" | "result" | "history" | "chat"
+const VALID_SCREENS: Screen[] = ["recording", "result", "history", "chat"]
+const SS_KEY = "vc_screen"
 
 // Pre-populated demo records
 const initialRecords: HistoryRecord[] = [
@@ -16,8 +18,16 @@ const initialRecords: HistoryRecord[] = [
   { id: "demo-3", date: "2026年2月22日 16:00", score: 78, label: "良好", comment: "嗓音状态非常好，节奏感掌握得很棒！" },
 ]
 
+function readSavedScreen(): Screen {
+  try {
+    const v = sessionStorage.getItem(SS_KEY)
+    if (v && VALID_SCREENS.includes(v as Screen)) return v as Screen
+  } catch {}
+  return "recording"
+}
+
 export function VocalCoachApp() {
-  const [screen, setScreen] = useState<Screen>("recording")
+  const [screen, setScreen] = useState<Screen>(readSavedScreen)
   const [lastDuration, setLastDuration] = useState(0)
   const [records, setRecords] = useState<HistoryRecord[]>(initialRecords)
   const [isLoading, setIsLoading] = useState(false)
@@ -26,8 +36,13 @@ export function VocalCoachApp() {
   const [chatFromResult, setChatFromResult] = useState(false)
   const [prevScreen, setPrevScreen] = useState<Screen>("recording")
 
+  // Persist screen to sessionStorage so HMR / sandbox reloads restore it
+  useEffect(() => {
+    try { sessionStorage.setItem(SS_KEY, screen) } catch {}
+  }, [screen])
+
   // Track which screens have been visited so we can lazy-mount them
-  const visitedRef = useRef<Set<Screen>>(new Set(["recording"]))
+  const visitedRef = useRef<Set<Screen>>(new Set(["recording", readSavedScreen()]))
 
   const navigateTo = useCallback((target: Screen) => {
     visitedRef.current.add(target)
