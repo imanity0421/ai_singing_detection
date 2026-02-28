@@ -1,7 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { RotateCcw, Save, Sparkles, MessageCircle, Upload } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { RotateCcw, Share2, Home, MessageCircle, Sparkles, Upload } from "lucide-react"
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts"
 
 interface ResultScreenProps {
   duration: number
@@ -9,6 +17,7 @@ interface ResultScreenProps {
   onRetry: () => void
   onSave: (evaluation: EvaluationResult) => void
   onOpenChat: () => void
+  onGoHome?: () => void
 }
 
 export interface EvaluationResult {
@@ -25,7 +34,7 @@ function generateEvaluation(duration: number): EvaluationResult {
   const score = Math.min(baseScore + Math.floor(Math.random() * 8), 99)
   const breathStability = Math.min(50 + Math.floor(Math.random() * 45), 95)
   const toneBrightness = Math.min(55 + Math.floor(Math.random() * 40), 95)
-  const label = score >= 90 ? "卓越" : score >= 80 ? "优秀" : score >= 70 ? "良好" : "继续加油"
+  const label = score >= 90 ? "S" : score >= 80 ? "A" : score >= 70 ? "B" : "C"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -44,25 +53,116 @@ function generateEvaluation(duration: number): EvaluationResult {
   }
 }
 
-export function ResultScreen({ duration, active, onRetry, onSave, onOpenChat }: ResultScreenProps) {
+/* ---------- Semi-ring progress (used for breath / diction cards) ---------- */
+function SemiRingProgress({
+  value,
+  label,
+  levelText,
+  color = "var(--primary)",
+  size = 120,
+}: {
+  value: number
+  label: string
+  levelText: string
+  color?: string
+  size?: number
+}) {
+  const [animated, setAnimated] = useState(0)
+  const r = (size - 14) / 2
+  const circumference = Math.PI * r // half circle
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setAnimated(value))
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <svg width={size} height={size / 2 + 14} viewBox={`0 0 ${size} ${size / 2 + 14}`}>
+        {/* Track */}
+        <path
+          d={`M 7 ${size / 2 + 7} A ${r} ${r} 0 0 1 ${size - 7} ${size / 2 + 7}`}
+          fill="none"
+          stroke="var(--secondary)"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        {/* Value */}
+        <path
+          d={`M 7 ${size / 2 + 7} A ${r} ${r} 0 0 1 ${size - 7} ${size / 2 + 7}`}
+          fill="none"
+          stroke={color}
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - animated / 100)}
+          style={{ transition: "stroke-dashoffset 1.2s ease-out" }}
+        />
+        {/* Center text */}
+        <text
+          x={size / 2}
+          y={size / 2 - 2}
+          textAnchor="middle"
+          className="text-2xl font-black"
+          fill="var(--foreground)"
+        >
+          {Math.round(animated)}%
+        </text>
+      </svg>
+      <span className="text-base font-bold text-foreground">{label}</span>
+      <span
+        className="rounded-lg px-3 py-0.5 text-sm font-bold"
+        style={{ backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`, color }}
+      >
+        {levelText}
+      </span>
+    </div>
+  )
+}
+
+/* ---------- Timbre radar data ---------- */
+const timbreData = [
+  { trait: "磁性", value: 80 },
+  { trait: "浑厚", value: 90 },
+  { trait: "温暖", value: 75 },
+  { trait: "甜美", value: 30 },
+]
+
+const timbreTags = [
+  { name: "磁性", pct: 80, bg: "#F78000" },
+  { name: "浑厚", pct: 90, bg: "#D96B00" },
+  { name: "温暖", pct: 75, bg: "#E8A040" },
+  { name: "甜美", pct: 30, bg: "#C4A882" },
+]
+
+/* ---------- Cheering line based on score ---------- */
+function getCheerLine(score: number) {
+  if (score >= 90) return "太棒了，您的声音充满故事感！"
+  if (score >= 80) return "非常出色，继续保持这份热情！"
+  if (score >= 70) return "表现得很稳，再练练会更好！"
+  return "每一次开口都是进步，加油！"
+}
+
+export function ResultScreen({
+  duration,
+  active,
+  onRetry,
+  onSave,
+  onOpenChat,
+  onGoHome,
+}: ResultScreenProps) {
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null)
   const [animatedScore, setAnimatedScore] = useState(0)
-  const [animatedBreath, setAnimatedBreath] = useState(0)
-  const [animatedTone, setAnimatedTone] = useState(0)
   const [showResult, setShowResult] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Generate evaluation when screen becomes active; reset everything on each entry
+  // Generate evaluation when screen becomes active
   useEffect(() => {
     if (!active) {
-      // Reset so next activation re-runs the intro animation
       setShowResult(false)
       setAnimatedScore(0)
-      setAnimatedBreath(0)
-      setAnimatedTone(0)
       return
     }
-
-    // Active: generate new evaluation & kick off reveal
     const result = generateEvaluation(duration)
     setEvaluation(result)
     const timer = setTimeout(() => setShowResult(true), 200)
@@ -74,124 +174,249 @@ export function ResultScreen({ duration, active, onRetry, onSave, onOpenChat }: 
     if (!evaluation || !showResult) return
     const target = evaluation.score
     let current = 0
-    const increment = Math.ceil(target / 30)
+    const increment = Math.ceil(target / 40)
     const interval = setInterval(() => {
       current = Math.min(current + increment, target)
       setAnimatedScore(current)
       if (current >= target) clearInterval(interval)
-    }, 40)
+    }, 35)
     return () => clearInterval(interval)
   }, [evaluation, showResult])
 
-  // Animate progress bars
+  // Scroll to top when activated
   useEffect(() => {
-    if (!evaluation || !showResult) return
-    const timer = setTimeout(() => {
-      setAnimatedBreath(evaluation.breathStability)
-      setAnimatedTone(evaluation.toneBrightness)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [evaluation, showResult])
-
-  const handleSave = () => {
-    if (evaluation) {
-      onSave(evaluation)
+    if (active && scrollRef.current) {
+      scrollRef.current.scrollTo({ top: 0 })
     }
-  }
+  }, [active])
+
+  const handleSave = useCallback(() => {
+    if (evaluation) onSave(evaluation)
+  }, [evaluation, onSave])
+
+  const handleShare = useCallback(() => {
+    if (evaluation) onSave(evaluation)
+  }, [evaluation, onSave])
+
+  const scoreLabel = evaluation?.label ?? "S"
+  const scoreLabelColor =
+    scoreLabel === "S"
+      ? "#D96B00"
+      : scoreLabel === "A"
+        ? "#E8A040"
+        : "#8A7D6F"
 
   return (
-    <div className={`flex min-h-dvh flex-col bg-background px-6 py-8 transition-opacity duration-500 ${showResult ? "opacity-100" : "opacity-0"}`}>
-      {!showResult ? null : evaluation ? (
+    <div
+      ref={scrollRef}
+      className={`flex min-h-dvh flex-col overflow-y-auto bg-background pb-32 transition-opacity duration-500 ${showResult ? "opacity-100" : "opacity-0"}`}
+    >
+      {!showResult || !evaluation ? null : (
         <>
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-black text-foreground">{"\u58F0\u4E50\u62A5\u544A"}</h1>
-            <p className="mt-1 text-base text-muted-foreground">{"\u672C\u6B21\u7EC3\u6B4C\u8BC4\u4F30\u7ED3\u679C"}</p>
-          </div>
+          {/* ==================== PART 1: Emotion & Core Conclusion ==================== */}
 
-          {/* Score Card */}
-          <div className="mb-5 rounded-3xl bg-card p-8 shadow-sm">
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-lg font-medium text-muted-foreground">{"\u4ECA\u65E5\u8868\u73B0"}</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-7xl font-black text-primary">
-                  {animatedScore}
-                </span>
-                <span className="text-2xl font-bold text-primary/60">分</span>
-              </div>
-              <div className="mt-1 rounded-2xl bg-primary/10 px-5 py-1.5">
-                <span className="text-xl font-bold text-primary">
-                  {evaluation.label}
-                </span>
-              </div>
+          {/* Score Hero */}
+          <div className="flex flex-col items-center gap-3 px-6 pt-12 pb-2">
+            {/* Level badge */}
+            <div
+              className="flex h-20 w-20 items-center justify-center rounded-full"
+              style={{
+                background: `linear-gradient(135deg, color-mix(in srgb, ${scoreLabelColor} 15%, transparent), color-mix(in srgb, ${scoreLabelColor} 6%, transparent))`,
+              }}
+            >
+              <span className="text-5xl font-black" style={{ color: scoreLabelColor }}>
+                {scoreLabel}
+              </span>
             </div>
-          </div>
-
-          {/* Progress Bars */}
-          <div className="mb-5 space-y-5 rounded-3xl bg-card p-6 shadow-sm">
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-lg font-bold text-foreground">{"\u6C14\u606F\u7A33\u5B9A\u6027"}</span>
-                <span className="text-lg font-bold text-primary">{animatedBreath}%</span>
-              </div>
-              <div className="h-3.5 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
-                  style={{ width: `${animatedBreath}%` }}
-                />
-              </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-6xl font-black text-foreground">{animatedScore}</span>
+              <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-lg font-bold text-foreground">{"\u97F3\u8272\u660E\u4EAE\u5EA6"}</span>
-                <span className="text-lg font-bold text-primary">{animatedTone}%</span>
-              </div>
-              <div className="h-3.5 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
-                  style={{ width: `${animatedTone}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Comment */}
-          <div className="mb-5 rounded-3xl bg-accent p-6">
-            <p className="text-center text-xl leading-relaxed font-medium text-accent-foreground">
-              {evaluation.comment}
+            <p className="max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
+              {getCheerLine(evaluation.score)}
             </p>
           </div>
 
-          {/* Ask AI Teacher Button */}
-          <button
-            onClick={onOpenChat}
-            className="mb-6 flex w-full items-center justify-center gap-3 rounded-3xl bg-primary py-5 shadow-lg transition-all active:scale-[0.98]"
-          >
-            <MessageCircle className="h-6 w-6 text-primary-foreground" />
-            <span className="text-xl font-bold text-primary-foreground">
-              {"\u5BF9\u70B9\u8BC4\u6709\u7591\u95EE\uFF1F\u548CAI\u8001\u5E08\u804A\u804A"}
-            </span>
-          </button>
+          {/* AI Teacher Bubble Card */}
+          <div className="mx-5 mt-6 rounded-3xl bg-card p-5 shadow-sm">
+            {/* Teacher avatar row */}
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary">
+                <span className="text-sm font-black text-primary-foreground">{"AI"}</span>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-foreground">{"AI声乐导师"}</p>
+                <p className="text-sm text-muted-foreground">{"综合点评"}</p>
+              </div>
+            </div>
+            {/* Bubble */}
+            <div className="rounded-2xl rounded-tl-md bg-accent px-5 py-4">
+              <p className="text-lg leading-relaxed text-accent-foreground">
+                {"我非常喜欢您刚才的演唱！您的中低音区有一种岁月沉淀的浑厚感，听起来非常温暖。不过我注意到，在长音收尾的时候，气息稍微有一点点不够用，就像风筝线稍微松了一下。下次我们在长音前，试试把肚子再稍微撑住一点点，效果一定会更惊艳！"}
+              </p>
+            </div>
+          </div>
 
-          {/* Actions */}
-          <div className="mt-auto flex gap-3 pb-6">
+          {/* Chat Entry Button */}
+          <div className="mx-5 mt-4">
             <button
-              onClick={onRetry}
-              className="flex flex-1 items-center justify-center gap-2 rounded-3xl bg-card py-5 text-xl font-bold text-foreground shadow-sm transition-all active:scale-[0.98]"
+              onClick={onOpenChat}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl py-4 transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "#FEF5EB" }}
             >
-              <RotateCcw className="h-5 w-5" />
-              <span>{"\u91CD\u65B0\u5F55"}</span>
-            </button>
-            <button
-              onClick={handleSave}
-              className="flex flex-[1.5] items-center justify-center gap-2 rounded-3xl bg-primary py-5 text-xl font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98]"
-            >
-              <Save className="h-5 w-5" />
-              <span>{"\u4FDD\u5B58\u5230\u4F5C\u54C1\u5899"}</span>
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <span className="text-lg font-bold text-primary">
+                {"对点评有疑问？和AI老师聊聊"}
+              </span>
             </button>
           </div>
+
+          {/* ==================== PART 2: Professional Vocal Health Cards ==================== */}
+
+          <div className="mx-5 mt-8 mb-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-black text-foreground">{"声乐体检报告"}</h2>
+            </div>
+            <p className="mt-1 text-base text-muted-foreground">{"多维度AI分析，了解您的声音特质"}</p>
+          </div>
+
+          {/* Card 1: Breath & Health */}
+          <div className="mx-5 mb-4 rounded-3xl bg-card p-6 shadow-sm">
+            <h3 className="mb-1 text-xl font-bold text-foreground">{"气息与发声健康"}</h3>
+            <p className="mb-5 text-sm text-muted-foreground">{"Breath & Health"}</p>
+
+            <div className="flex items-center justify-around">
+              <SemiRingProgress
+                value={85}
+                label={"气息支撑度"}
+                levelText={"优秀"}
+                color="var(--primary)"
+              />
+              <SemiRingProgress
+                value={78}
+                label={"声带放松度"}
+                levelText={"良好"}
+                color="#E8A040"
+              />
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-accent/60 px-4 py-3">
+              <p className="text-base leading-relaxed text-accent-foreground">
+                {"发声习惯很健康，没有明显漏气现象。"}
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2: Timbre Analysis */}
+          <div className="mx-5 mb-4 rounded-3xl bg-card p-6 shadow-sm">
+            <h3 className="mb-1 text-xl font-bold text-foreground">{"音色特质鉴定"}</h3>
+            <p className="mb-4 text-sm text-muted-foreground">{"Timbre Analysis"}</p>
+
+            {/* Radar chart */}
+            <div className="mx-auto mb-4" style={{ height: 200, width: "100%" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={timbreData}>
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis
+                    dataKey="trait"
+                    tick={{ fill: "var(--foreground)", fontSize: 14, fontWeight: 700 }}
+                  />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={false}
+                    axisLine={false}
+                  />
+                  <Radar
+                    name="音色"
+                    dataKey="value"
+                    stroke="var(--primary)"
+                    fill="var(--primary)"
+                    fillOpacity={0.15}
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Tag Cloud */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {timbreTags.map((tag) => (
+                <span
+                  key={tag.name}
+                  className="rounded-xl px-4 py-1.5 text-base font-bold text-primary-foreground"
+                  style={{
+                    backgroundColor: tag.bg,
+                    opacity: 0.4 + (tag.pct / 100) * 0.6,
+                  }}
+                >
+                  {tag.name} {tag.pct}%
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-accent/60 px-4 py-3">
+              <p className="text-base leading-relaxed text-accent-foreground">
+                {"您的专属音色偏向"}
+                <span className="font-bold text-primary">{"【温暖浑厚】"}</span>
+                {"，非常适合演唱抒情经典老歌。"}
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3: Diction Clarity */}
+          <div className="mx-5 mb-8 rounded-3xl bg-card p-6 shadow-sm">
+            <h3 className="mb-1 text-xl font-bold text-foreground">{"咬字与吐音"}</h3>
+            <p className="mb-5 text-sm text-muted-foreground">{"Diction Clarity"}</p>
+
+            <div className="flex justify-center">
+              <SemiRingProgress
+                value={95}
+                label={"吐字清晰度"}
+                levelText={"卓越"}
+                color="#D96B00"
+                size={140}
+              />
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-accent/60 px-4 py-3">
+              <p className="text-base leading-relaxed text-accent-foreground">
+                {"字正腔圆，咬字归韵非常到位，这在朗诵和民歌中是非常棒的优势！"}
+              </p>
+            </div>
+          </div>
         </>
-      ) : null}
+      )}
+
+      {/* ==================== STICKY BOTTOM BAR ==================== */}
+      {showResult && evaluation && active && (
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-border bg-card/95 px-5 pb-8 pt-3 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onRetry}
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
+            >
+              <RotateCcw className="h-5 w-5 text-foreground" />
+              <span className="text-sm font-bold text-foreground">{"再唱一次"}</span>
+            </button>
+            <button
+              onClick={handleShare}
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
+            >
+              <Share2 className="h-5 w-5 text-foreground" />
+              <span className="text-sm font-bold text-foreground">{"分享报告"}</span>
+            </button>
+            <button
+              onClick={onGoHome ?? onRetry}
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
+            >
+              <Home className="h-5 w-5 text-foreground" />
+              <span className="text-sm font-bold text-foreground">{"返回主页"}</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

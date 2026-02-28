@@ -167,6 +167,7 @@ export function VocalCoachApp() {
             onRetry={handleRetry}
             onSave={handleSave}
             onOpenChat={() => handleOpenChat(true)}
+            onGoHome={handleRetry}
           />
         )}
       </div>
