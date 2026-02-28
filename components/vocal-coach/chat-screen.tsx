@@ -55,7 +55,7 @@ const MOCK_ERROR_MESSAGE: UIMessage = {
   parts: [
     {
       type: "text",
-      text: "系统提示：这是预览环境，完整对话需要在本地配置 DASHSCOPE_API_KEY 后体验哦~ 不过您可以先看看界面效果！",
+      text: "系统提示：请先在 .env.local 中配置 OPENAI_API_BASE 与 OPENAI_API_KEY 后即可与 AI 导师对话哦~",
     },
   ],
 }
