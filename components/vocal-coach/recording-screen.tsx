@@ -162,16 +162,16 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-foreground">
-            声乐AI助教
+            {"\u58F0\u4E50AI\u52A9\u6559"}
           </h1>
-          <p className="mt-1 text-base text-muted-foreground">每天一首歌，越唱越快乐</p>
+          <p className="mt-1 text-base text-muted-foreground">{"\u6BCF\u5929\u4E00\u9996\u6B4C\uFF0C\u8D8A\u5531\u8D8A\u5FEB\u4E50"}</p>
         </div>
         <button
           onClick={onOpenHistory}
           className="relative flex items-center gap-2 rounded-2xl bg-card px-4 py-3 text-lg font-bold text-foreground shadow-sm transition-all active:scale-95"
         >
           <Trophy className="h-5 w-5 text-primary" />
-          <span>作品墙</span>
+          <span>{"\u4F5C\u54C1\u5899"}</span>
           {historyCount > 0 && (
             <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {historyCount > 99 ? "99+" : historyCount}
@@ -363,12 +363,11 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
       <div className="flex flex-col gap-3 pb-2" style={{ minHeight: "112px" }}>
         {/* Hint row: always rendered to preserve height, invisible when not needed */}
         <p
-          suppressHydrationWarning
           className={`text-center text-base text-muted-foreground transition-opacity ${
             isRecording && !isPreview && seconds < 3 ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          {"至少录制3秒哦"}
+          {"\u81F3\u5C11\u5F55\u52363\u79D2\u54E6"}
         </p>
 
         {phase === "idle" ? (
@@ -378,14 +377,14 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
             >
               <Mic className="h-6 w-6" />
-              <span>开始录歌</span>
+              <span>{"\u5F00\u59CB\u5F55\u6B4C"}</span>
             </button>
             <button
               onClick={onUpload}
               className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-3xl bg-card py-5 transition-all active:scale-[0.98]"
             >
               <Upload className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-bold text-foreground">上传音频</span>
+              <span className="text-sm font-bold text-foreground">{"\u4E0A\u4F20\u97F3\u9891"}</span>
             </button>
           </div>
         ) : phase === "recording" ? (
@@ -395,7 +394,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               className="flex flex-1 flex-col items-center justify-center gap-1 rounded-3xl bg-card py-5 shadow-sm transition-all active:scale-[0.98]"
             >
               <ArrowLeft className="h-6 w-6 text-foreground" />
-              <span className="text-sm font-bold text-foreground">返回</span>
+              <span className="text-sm font-bold text-foreground">{"\u8FD4\u56DE"}</span>
             </button>
             <button
               onClick={requestFinish}
@@ -403,7 +402,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
             >
               <Check className="h-6 w-6" />
-              <span>完成录歌</span>
+              <span>{"\u5B8C\u6210\u5F55\u6B4C"}</span>
             </button>
           </div>
         ) : (
@@ -414,14 +413,14 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               className="flex flex-1 flex-col items-center justify-center gap-1 rounded-3xl bg-card py-5 shadow-sm transition-all active:scale-[0.98]"
             >
               <Mic className="h-6 w-6 text-foreground" />
-              <span className="text-sm font-bold text-foreground">重新录</span>
+              <span className="text-sm font-bold text-foreground">{"\u91CD\u65B0\u5F55"}</span>
             </button>
             <button
               onClick={handleSubmitFromPreview}
               className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
             >
               <Sparkles className="h-6 w-6" />
-              <span>提交点评</span>
+              <span>{"\u63D0\u4EA4\u70B9\u8BC4"}</span>
             </button>
           </div>
         )}
@@ -431,7 +430,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 backdrop-blur-sm">
           <div className="mx-4 mb-8 w-full max-w-md animate-in slide-in-from-bottom-4 duration-300 rounded-3xl bg-card p-6 shadow-xl">
-            <p className="text-center text-2xl font-bold text-foreground">结束这次录音吗？</p>
+            <p className="text-center text-2xl font-bold text-foreground">{"\u7ED3\u675F\u8FD9\u6B21\u5F55\u97F3\u5417\uFF1F"}</p>
             <p className="mt-2 text-center text-base text-muted-foreground">
               {'已录制 '}
               <span className="font-bold text-foreground">{formatTime(seconds)}</span>
@@ -442,13 +441,13 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
                 onClick={cancelFinish}
                 className="flex flex-1 items-center justify-center rounded-2xl bg-secondary py-4 text-lg font-bold text-foreground transition-all active:scale-[0.98]"
               >
-                继续录制
+                {"\u7EE7\u7EED\u5F55\u5236"}
               </button>
               <button
                 onClick={confirmFinish}
                 className="flex flex-1 items-center justify-center rounded-2xl bg-primary py-4 text-lg font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98]"
               >
-                结束录音
+                {"\u7ED3\u675F\u5F55\u97F3"}
               </button>
             </div>
           </div>

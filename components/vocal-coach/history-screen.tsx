@@ -41,8 +41,8 @@ export function HistoryScreen({ records, onBack }: HistoryScreenProps) {
           <ArrowLeft className="h-6 w-6" />
         </button>
         <div>
-          <h1 className="text-2xl font-black text-foreground">作品墙</h1>
-          <p className="text-sm text-muted-foreground">共 {records.length} 条记录</p>
+          <h1 className="text-2xl font-black text-foreground">{"\u4F5C\u54C1\u5899"}</h1>
+          <p className="text-sm text-muted-foreground">{"\u5171 "}{records.length}{" \u6761\u8BB0\u5F55"}</p>
         </div>
       </div>
 
@@ -54,10 +54,10 @@ export function HistoryScreen({ records, onBack }: HistoryScreenProps) {
           </div>
           <div>
             <p className="text-base font-bold text-foreground">
-              最高分 {Math.max(...records.map((r) => r.score))} 分
+              {"\u6700\u9AD8\u5206 "}{Math.max(...records.map((r) => r.score))}{" \u5206"}
             </p>
             <p className="text-sm text-muted-foreground">
-              平均分 {Math.round(records.reduce((sum, r) => sum + r.score, 0) / records.length)} 分
+              {"\u5E73\u5747\u5206 "}{Math.round(records.reduce((sum, r) => sum + r.score, 0) / records.length)}{" \u5206"}
             </p>
           </div>
         </div>
@@ -69,8 +69,8 @@ export function HistoryScreen({ records, onBack }: HistoryScreenProps) {
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
             <Music className="h-10 w-10 text-muted-foreground" />
           </div>
-          <p className="text-xl font-medium text-muted-foreground">作品墙还是空的</p>
-          <p className="text-lg text-muted-foreground">完成一次练歌后，作品会出现在这里</p>
+          <p className="text-xl font-medium text-muted-foreground">{"\u4F5C\u54C1\u5899\u8FD8\u662F\u7A7A\u7684"}</p>
+          <p className="text-lg text-muted-foreground">{"\u5B8C\u6210\u4E00\u6B21\u7EC3\u6B4C\u540E\uFF0C\u4F5C\u54C1\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC"}</p>
         </div>
       ) : (
         <div className="space-y-3">

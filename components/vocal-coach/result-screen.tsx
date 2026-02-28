@@ -95,14 +95,14 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
         <>
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-3xl font-black text-foreground">声乐报告</h1>
-            <p className="mt-1 text-base text-muted-foreground">本次练歌评估结果</p>
+            <h1 className="text-3xl font-black text-foreground">{"\u58F0\u4E50\u62A5\u544A"}</h1>
+            <p className="mt-1 text-base text-muted-foreground">{"\u672C\u6B21\u7EC3\u6B4C\u8BC4\u4F30\u7ED3\u679C"}</p>
           </div>
 
           {/* Score Card */}
           <div className="mb-5 rounded-3xl bg-card p-8 shadow-sm">
             <div className="flex flex-col items-center gap-2">
-              <p className="text-lg font-medium text-muted-foreground">今日表现</p>
+              <p className="text-lg font-medium text-muted-foreground">{"\u4ECA\u65E5\u8868\u73B0"}</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-7xl font-black text-primary">
                   {animatedScore}
@@ -121,7 +121,7 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
           <div className="mb-5 space-y-5 rounded-3xl bg-card p-6 shadow-sm">
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-lg font-bold text-foreground">气息稳定性</span>
+                <span className="text-lg font-bold text-foreground">{"\u6C14\u606F\u7A33\u5B9A\u6027"}</span>
                 <span className="text-lg font-bold text-primary">{animatedBreath}%</span>
               </div>
               <div className="h-3.5 overflow-hidden rounded-full bg-secondary">
@@ -133,7 +133,7 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-lg font-bold text-foreground">音色明亮度</span>
+                <span className="text-lg font-bold text-foreground">{"\u97F3\u8272\u660E\u4EAE\u5EA6"}</span>
                 <span className="text-lg font-bold text-primary">{animatedTone}%</span>
               </div>
               <div className="h-3.5 overflow-hidden rounded-full bg-secondary">
@@ -159,7 +159,7 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
           >
             <MessageCircle className="h-6 w-6 text-primary-foreground" />
             <span className="text-xl font-bold text-primary-foreground">
-              对点评有疑问？和AI老师聊聊
+              {"\u5BF9\u70B9\u8BC4\u6709\u7591\u95EE\uFF1F\u548CAI\u8001\u5E08\u804A\u804A"}
             </span>
           </button>
 
@@ -170,14 +170,14 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
               className="flex flex-1 items-center justify-center gap-2 rounded-3xl bg-card py-5 text-xl font-bold text-foreground shadow-sm transition-all active:scale-[0.98]"
             >
               <RotateCcw className="h-5 w-5" />
-              <span>重新录</span>
+              <span>{"\u91CD\u65B0\u5F55"}</span>
             </button>
             <button
               onClick={handleSave}
               className="flex flex-[1.5] items-center justify-center gap-2 rounded-3xl bg-primary py-5 text-xl font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98]"
             >
               <Save className="h-5 w-5" />
-              <span>保存到作品墙</span>
+              <span>{"\u4FDD\u5B58\u5230\u4F5C\u54C1\u5899"}</span>
             </button>
           </div>
         </>

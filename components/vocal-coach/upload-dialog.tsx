@@ -59,9 +59,9 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
           <X className="h-4 w-4" />
         </button>
 
-        <h2 className="mb-1 text-2xl font-bold text-foreground">上传音频</h2>
+        <h2 className="mb-1 text-2xl font-bold text-foreground">{"\u4E0A\u4F20\u97F3\u9891"}</h2>
         <p className="mb-6 text-base text-muted-foreground">
-          支持 MP3、WAV、M4A 格式
+          {"\u652F\u6301 MP3\u3001WAV\u3001M4A \u683C\u5F0F"}
         </p>
 
         {/* Upload Area */}
@@ -80,7 +80,7 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-base font-bold text-foreground">{fileName}</p>
-              <p className="text-sm text-muted-foreground">已选择</p>
+              <p className="text-sm text-muted-foreground">{"\u5DF2\u9009\u62E9"}</p>
             </div>
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
               <Check className="h-4 w-4 text-primary" />
@@ -95,9 +95,9 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
               <Upload className="h-7 w-7 text-primary" />
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold text-foreground">点击选择文件</p>
+              <p className="text-lg font-bold text-foreground">{"\u70B9\u51FB\u9009\u62E9\u6587\u4EF6"}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                从手机中选择音频文件
+                {"\u4ECE\u624B\u673A\u4E2D\u9009\u62E9\u97F3\u9891\u6587\u4EF6"}
               </p>
             </div>
           </button>
@@ -109,7 +109,7 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
             onClick={handleClose}
             className="flex-1 rounded-2xl bg-secondary py-4 text-lg font-bold text-secondary-foreground transition-all active:scale-[0.98]"
           >
-            取消
+            {"\u53D6\u6D88"}
           </button>
           <button
             onClick={handleUpload}

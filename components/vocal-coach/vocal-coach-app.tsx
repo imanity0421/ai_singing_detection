@@ -27,15 +27,17 @@ export function VocalCoachApp() {
   const [prevScreen, setPrevScreen] = useState<Screen>("recording")
 
   // Track which screens have been mounted so we keep them alive for smooth transitions
-  const [mountedScreens, setMountedScreens] = useState<Set<Screen>>(new Set(["recording"]))
+  // Use a plain object instead of Set to avoid serialization issues
+  const [mountedScreens, setMountedScreens] = useState<Record<string, boolean>>({ recording: true })
+
+  // A key that increments to force ResultScreen remount when needed
+  const [resultKey, setResultKey] = useState(0)
 
   // Ensure the current screen is always in the mounted set
   useEffect(() => {
     setMountedScreens((prev) => {
-      if (prev.has(screen)) return prev
-      const next = new Set(prev)
-      next.add(screen)
-      return next
+      if (prev[screen]) return prev
+      return { ...prev, [screen]: true }
     })
   }, [screen])
 
@@ -67,12 +69,12 @@ export function VocalCoachApp() {
 
   const handleRetry = useCallback(() => {
     setScreen("recording")
-    // Unmount result screen so it generates fresh data next time
+    // Force ResultScreen to remount with fresh data next time
     setMountedScreens((prev) => {
-      const next = new Set(prev)
-      next.delete("result")
-      return next
+      const { result: _, ...rest } = prev
+      return rest
     })
+    setResultKey((k) => k + 1)
   }, [])
 
   const handleSave = useCallback((evaluation: EvaluationResult) => {
@@ -87,14 +89,14 @@ export function VocalCoachApp() {
       comment: evaluation.comment,
     }
     setRecords((prev) => [newRecord, ...prev])
-    // Navigate to history (作品墙) to see the new record
+    // Navigate to history
     setScreen("history")
-    // Unmount result screen so it regenerates next time
+    // Force ResultScreen to remount with fresh data next time
     setMountedScreens((prev) => {
-      const next = new Set(prev)
-      next.delete("result")
-      return next
+      const { result: _, ...rest } = prev
+      return rest
     })
+    setResultKey((k) => k + 1)
   }, [])
 
   const handleOpenHistory = useCallback(() => {
@@ -135,7 +137,7 @@ export function VocalCoachApp() {
           screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens.has("recording") && (
+        {mountedScreens["recording"] && (
           <RecordingScreen
             onComplete={handleRecordingComplete}
             onUpload={handleOpenUpload}
@@ -151,8 +153,9 @@ export function VocalCoachApp() {
           screen === "result" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens.has("result") && (
+        {mountedScreens["result"] && (
           <ResultScreen
+            key={resultKey}
             duration={lastDuration}
             onRetry={handleRetry}
             onSave={handleSave}
@@ -166,7 +169,7 @@ export function VocalCoachApp() {
           screen === "history" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens.has("history") && (
+        {mountedScreens["history"] && (
           <HistoryScreen records={records} onBack={handleBackFromHistory} />
         )}
       </div>
@@ -176,7 +179,7 @@ export function VocalCoachApp() {
           screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens.has("chat") && (
+        {mountedScreens["chat"] && (
           <ChatScreen fromResult={chatFromResult} onBack={handleBackFromChat} />
         )}
       </div>
