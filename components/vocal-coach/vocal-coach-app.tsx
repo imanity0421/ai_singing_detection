@@ -42,7 +42,8 @@ export function VocalCoachApp() {
   }, [screen])
 
   // Track which screens have been visited so we can lazy-mount them
-  const visitedRef = useRef<Set<Screen>>(new Set(["recording", readSavedScreen()]))
+  // Using state instead of ref so re-mounts (HMR / sandbox) correctly trigger re-render
+  const [visited, setVisited] = useState<Set<Screen>>(() => new Set(["recording", readSavedScreen()]))
 
   // Centralized timer refs - cancelable on unmount or re-trigger
   const loadingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -55,7 +56,12 @@ export function VocalCoachApp() {
   useEffect(() => clearLoadingTimers, [clearLoadingTimers])
 
   const navigateTo = useCallback((target: Screen) => {
-    visitedRef.current.add(target)
+    setVisited((prev) => {
+      if (prev.has(target)) return prev
+      const next = new Set(prev)
+      next.add(target)
+      return next
+    })
     setScreen(target)
   }, [])
 
@@ -134,7 +140,7 @@ export function VocalCoachApp() {
   }, [startLoadingSequence])
 
   // Helper: whether a screen should be mounted (once visited, stays mounted)
-  const shouldMount = (s: Screen) => visitedRef.current.has(s) || screen === s
+  const shouldMount = (s: Screen) => visited.has(s) || screen === s
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">

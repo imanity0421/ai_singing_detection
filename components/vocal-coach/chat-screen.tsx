@@ -60,6 +60,9 @@ const MOCK_ERROR_MESSAGE: UIMessage = {
   ],
 }
 
+// Stable transport instance — avoids re-creating on every render
+const chatTransport = new DefaultChatTransport({ api: "/api/chat" })
+
 export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
   const [inputMode, setInputMode] = useState<"voice" | "text">("voice")
   const [textValue, setTextValue] = useState("")
@@ -72,7 +75,7 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
     : INITIAL_MESSAGES_DEFAULT
 
   const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: chatTransport,
     initialMessages,
   })
 
