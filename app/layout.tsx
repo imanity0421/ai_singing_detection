@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Noto_Sans_SC } from 'next/font/google'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="font-sans antialiased">
         {children}
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   )
