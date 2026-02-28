@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { RotateCcw, Save, Sparkles, MessageCircle, Upload } from "lucide-react"
 
 interface ResultScreenProps {
@@ -51,25 +51,22 @@ export function ResultScreen({ duration, active, onRetry, onSave, onOpenChat }: 
   const [animatedTone, setAnimatedTone] = useState(0)
   const [showResult, setShowResult] = useState(false)
 
-  // Only run effects when screen becomes active, reset on new entry
-  const prevActiveRef = useRef(false)
+  // Generate evaluation when screen becomes active; reset everything on each entry
   useEffect(() => {
-    if (active && !prevActiveRef.current) {
-      // Freshly navigated here: generate new evaluation & reset animations
+    if (!active) {
+      // Reset so next activation re-runs the intro animation
       setShowResult(false)
       setAnimatedScore(0)
       setAnimatedBreath(0)
       setAnimatedTone(0)
+      return
+    }
 
-      const result = generateEvaluation(duration)
-      setEvaluation(result)
-      const timer = setTimeout(() => setShowResult(true), 200)
-      prevActiveRef.current = true
-      return () => clearTimeout(timer)
-    }
-    if (!active) {
-      prevActiveRef.current = false
-    }
+    // Active: generate new evaluation & kick off reveal
+    const result = generateEvaluation(duration)
+    setEvaluation(result)
+    const timer = setTimeout(() => setShowResult(true), 200)
+    return () => clearTimeout(timer)
   }, [active, duration])
 
   // Animate score counting up
