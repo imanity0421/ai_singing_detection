@@ -7,13 +7,13 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
+  DrawerDescription,
   DrawerClose,
 } from "@/components/ui/drawer"
 
 interface AiChatDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** If true, show a contextual opening message from the AI teacher about the result */
   fromResult?: boolean
 }
 
@@ -23,48 +23,52 @@ interface ChatMessage {
   text: string
 }
 
-const defaultMessages: ChatMessage[] = [
-  {
-    id: "ai-1",
-    role: "ai",
-    text: "您好！我是您的专属AI声乐导师，有任何关于唱歌的问题都可以问我哦！",
-  },
-  {
-    id: "user-1",
-    role: "user",
-    text: "老师，我唱高音的时候总觉得嗓子紧，怎么办？",
-  },
-  {
-    id: "ai-2",
-    role: "ai",
-    text: "这是很常见的问题！建议您试试\u201C叹气式\u201D起音：先深吸一口气，然后像叹气一样自然地发出声音，让喉咙保持放松。每天练习5分钟，会有明显改善的！",
-  },
-]
+function getDefaultMessages(): ChatMessage[] {
+  return [
+    {
+      id: "ai-1",
+      role: "ai",
+      text: "\u60A8\u597D\uFF01\u6211\u662F\u60A8\u7684\u4E13\u5C5EAI\u58F0\u4E50\u5BFC\u5E08\uFF0C\u6709\u4EFB\u4F55\u5173\u4E8E\u5531\u6B4C\u7684\u95EE\u9898\u90FD\u53EF\u4EE5\u95EE\u6211\u54E6\uFF01",
+    },
+    {
+      id: "user-1",
+      role: "user",
+      text: "\u8001\u5E08\uFF0C\u6211\u5531\u9AD8\u97F3\u7684\u65F6\u5019\u603B\u89C9\u5F97\u55D3\u5B50\u7D27\uFF0C\u600E\u4E48\u529E\uFF1F",
+    },
+    {
+      id: "ai-2",
+      role: "ai",
+      text: "\u8FD9\u662F\u5F88\u5E38\u89C1\u7684\u95EE\u9898\uFF01\u5EFA\u8BAE\u60A8\u8BD5\u8BD5\u201C\u53F9\u6C14\u5F0F\u201D\u8D77\u97F3\uFF1A\u5148\u6DF1\u5438\u4E00\u53E3\u6C14\uFF0C\u7136\u540E\u50CF\u53F9\u6C14\u4E00\u6837\u81EA\u7136\u5730\u53D1\u51FA\u58F0\u97F3\uFF0C\u8BA9\u5589\u5499\u4FDD\u6301\u653E\u677E\u3002\u6BCF\u5929\u7EC3\u4E605\u5206\u949F\uFF0C\u4F1A\u6709\u660E\u663E\u6539\u5584\u7684\uFF01",
+    },
+  ]
+}
 
-const resultMessages: ChatMessage[] = [
-  {
-    id: "ai-result-1",
-    role: "ai",
-    text: "我刚刚听了您的演唱，气息控制得比上次好！但在高音区稍微有点紧，您刚才觉得嗓子累吗？",
-  },
-  {
-    id: "user-result-1",
-    role: "user",
-    text: "是的老师，唱到高音部分确实有点吃力。",
-  },
-  {
-    id: "ai-result-2",
-    role: "ai",
-    text: "没关系，这说明您的气息支撑还需要加强一点。我建议您每天用\u201C嘶\u201D的发音做呼气练习，慢慢把气息拉长到15秒以上，坚持一周就能感觉到变化！",
-  },
-]
+function getResultMessages(): ChatMessage[] {
+  return [
+    {
+      id: "ai-result-1",
+      role: "ai",
+      text: "\u6211\u521A\u521A\u542C\u4E86\u60A8\u7684\u6F14\u5531\uFF0C\u6C14\u606F\u63A7\u5236\u5F97\u6BD4\u4E0A\u6B21\u597D\uFF01\u4F46\u5728\u9AD8\u97F3\u533A\u7A0D\u5FAE\u6709\u70B9\u7D27\uFF0C\u60A8\u521A\u624D\u89C9\u5F97\u55D3\u5B50\u7D2F\u5417\uFF1F",
+    },
+    {
+      id: "user-result-1",
+      role: "user",
+      text: "\u662F\u7684\u8001\u5E08\uFF0C\u5531\u5230\u9AD8\u97F3\u90E8\u5206\u786E\u5B9E\u6709\u70B9\u5403\u529B\u3002",
+    },
+    {
+      id: "ai-result-2",
+      role: "ai",
+      text: "\u6CA1\u5173\u7CFB\uFF0C\u8FD9\u8BF4\u660E\u60A8\u7684\u6C14\u606F\u652F\u6491\u8FD8\u9700\u8981\u52A0\u5F3A\u4E00\u70B9\u3002\u6211\u5EFA\u8BAE\u60A8\u6BCF\u5929\u7528\u201C\u5636\u201D\u7684\u53D1\u97F3\u505A\u547C\u6C14\u7EC3\u4E60\uFF0C\u6162\u6162\u628A\u6C14\u606F\u62C9\u957F\u523015\u79D2\u4EE5\u4E0A\uFF0C\u575A\u6301\u4E00\u5468\u5C31\u80FD\u611F\u89C9\u5230\u53D8\u5316\uFF01",
+    },
+  ]
+}
 
 export function AiChatDrawer({ open, onOpenChange, fromResult = false }: AiChatDrawerProps) {
   const [inputMode, setInputMode] = useState<"voice" | "text">("voice")
   const [textValue, setTextValue] = useState("")
   const [isHolding, setIsHolding] = useState(false)
 
-  const messages = fromResult ? resultMessages : defaultMessages
+  const messages = fromResult ? getResultMessages() : getDefaultMessages()
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -73,11 +77,11 @@ export function AiChatDrawer({ open, onOpenChange, fromResult = false }: AiChatD
           {/* Header */}
           <DrawerHeader className="relative flex-shrink-0 border-b border-border px-6 pb-4 pt-2">
             <DrawerTitle className="text-center text-2xl font-black text-foreground">
-              您的专属AI声乐导师
+              {"\u60A8\u7684\u4E13\u5C5EAI\u58F0\u4E50\u5BFC\u5E08"}
             </DrawerTitle>
-            <p className="text-center text-base text-muted-foreground">
-              有问题随时问，我来帮您解答
-            </p>
+            <DrawerDescription className="text-center text-base text-muted-foreground">
+              {"\u6709\u95EE\u9898\u968F\u65F6\u95EE\uFF0C\u6211\u6765\u5E2E\u60A8\u89E3\u7B54"}
+            </DrawerDescription>
             <DrawerClose asChild>
               <button
                 className="absolute right-4 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-foreground transition-all active:scale-95"
@@ -105,7 +109,7 @@ export function AiChatDrawer({ open, onOpenChange, fromResult = false }: AiChatD
                 <button
                   onClick={() => setInputMode("text")}
                   className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground transition-all active:scale-95"
-                  aria-label="切换到文字输入"
+                  aria-label={"\u5207\u6362\u5230\u6587\u5B57\u8F93\u5165"}
                 >
                   <Keyboard className="h-6 w-6" />
                 </button>
@@ -121,7 +125,7 @@ export function AiChatDrawer({ open, onOpenChange, fromResult = false }: AiChatD
                   }`}
                 >
                   <Mic className={`h-7 w-7 ${isHolding ? "animate-pulse" : ""}`} />
-                  <span>{isHolding ? "松开发送" : "按住说话"}</span>
+                  <span>{isHolding ? "\u677E\u5F00\u53D1\u9001" : "\u6309\u4F4F\u8BF4\u8BDD"}</span>
                 </button>
               </div>
             ) : (
@@ -130,7 +134,7 @@ export function AiChatDrawer({ open, onOpenChange, fromResult = false }: AiChatD
                 <button
                   onClick={() => setInputMode("voice")}
                   className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground transition-all active:scale-95"
-                  aria-label="切换到语音输入"
+                  aria-label={"\u5207\u6362\u5230\u8BED\u97F3\u8F93\u5165"}
                 >
                   <Mic className="h-6 w-6" />
                 </button>
@@ -140,13 +144,13 @@ export function AiChatDrawer({ open, onOpenChange, fromResult = false }: AiChatD
                     type="text"
                     value={textValue}
                     onChange={(e) => setTextValue(e.target.value)}
-                    placeholder="输入您的问题..."
+                    placeholder={"\u8F93\u5165\u60A8\u7684\u95EE\u9898..."}
                     className="flex-1 bg-transparent text-lg text-foreground outline-none placeholder:text-muted-foreground"
                   />
                   <button
                     disabled={!textValue.trim()}
                     className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all active:scale-95 disabled:opacity-40"
-                    aria-label="发送"
+                    aria-label={"\u53D1\u9001"}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -178,7 +182,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
     <div className={`flex ${isAi ? "justify-start" : "justify-end"}`}>
       <div className="flex max-w-[85%] flex-col gap-1">
         {isAi && (
-          <span className="px-1 text-sm font-bold text-muted-foreground">AI导师</span>
+          <span className="px-1 text-sm font-bold text-muted-foreground">{"AI\u5BFC\u5E08"}</span>
         )}
         <div
           className={`rounded-2xl px-5 py-4 ${

@@ -171,7 +171,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
             isRecording && seconds < 3 ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          至少录制3秒哦
+          {"\u81F3\u5C11\u5F55\u52363\u79D2\u54E6"}
         </p>
 
         {phase === "idle" ? (
