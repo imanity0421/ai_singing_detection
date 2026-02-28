@@ -26,8 +26,15 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
   const [phase, setPhase] = useState<"idle" | "recording" | "preview">("idle")
   const [showConfirm, setShowConfirm] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * TIPS.length))
+  const [tipIndex, setTipIndex] = useState(0)
   const [tipFade, setTipFade] = useState(true)
+  const [hasMounted, setHasMounted] = useState(false)
+
+  // Avoid hydration mismatch: randomize tip index only after mount
+  useEffect(() => {
+    setTipIndex(Math.floor(Math.random() * TIPS.length))
+    setHasMounted(true)
+  }, [])
 
   // Preview (试听) state
   const [isPlaying, setIsPlaying] = useState(false)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
@@ -25,6 +25,19 @@ export function VocalCoachApp() {
   const [showUpload, setShowUpload] = useState(false)
   const [chatFromResult, setChatFromResult] = useState(false)
   const [prevScreen, setPrevScreen] = useState<Screen>("recording")
+
+  // Track which screens have been mounted so we keep them alive for smooth transitions
+  const [mountedScreens, setMountedScreens] = useState<Set<Screen>>(new Set(["recording"]))
+
+  // Ensure the current screen is always in the mounted set
+  useEffect(() => {
+    setMountedScreens((prev) => {
+      if (prev.has(screen)) return prev
+      const next = new Set(prev)
+      next.add(screen)
+      return next
+    })
+  }, [screen])
 
   const handleOpenChat = useCallback((fromResult = false) => {
     setChatFromResult(fromResult)
@@ -54,6 +67,12 @@ export function VocalCoachApp() {
 
   const handleRetry = useCallback(() => {
     setScreen("recording")
+    // Unmount result screen so it generates fresh data next time
+    setMountedScreens((prev) => {
+      const next = new Set(prev)
+      next.delete("result")
+      return next
+    })
   }, [])
 
   const handleSave = useCallback((evaluation: EvaluationResult) => {
@@ -70,6 +89,12 @@ export function VocalCoachApp() {
     setRecords((prev) => [newRecord, ...prev])
     // Navigate to history (作品墙) to see the new record
     setScreen("history")
+    // Unmount result screen so it regenerates next time
+    setMountedScreens((prev) => {
+      const next = new Set(prev)
+      next.delete("result")
+      return next
+    })
   }, [])
 
   const handleOpenHistory = useCallback(() => {
@@ -104,13 +129,13 @@ export function VocalCoachApp() {
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">
-      {/* Screen transitions */}
+      {/* Screen transitions - keep screens mounted to prevent white flash */}
       <div
         className={`transition-all duration-500 ease-in-out ${
-          screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 absolute inset-0"
+          screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "recording" && (
+        {mountedScreens.has("recording") && (
           <RecordingScreen
             onComplete={handleRecordingComplete}
             onUpload={handleOpenUpload}
@@ -123,10 +148,10 @@ export function VocalCoachApp() {
 
       <div
         className={`transition-all duration-500 ease-in-out ${
-          screen === "result" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 absolute inset-0"
+          screen === "result" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "result" && (
+        {mountedScreens.has("result") && (
           <ResultScreen
             duration={lastDuration}
             onRetry={handleRetry}
@@ -138,20 +163,20 @@ export function VocalCoachApp() {
 
       <div
         className={`transition-all duration-500 ease-in-out ${
-          screen === "history" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 absolute inset-0"
+          screen === "history" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "history" && (
+        {mountedScreens.has("history") && (
           <HistoryScreen records={records} onBack={handleBackFromHistory} />
         )}
       </div>
 
       <div
         className={`transition-all duration-500 ease-in-out ${
-          screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 absolute inset-0"
+          screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "chat" && (
+        {mountedScreens.has("chat") && (
           <ChatScreen fromResult={chatFromResult} onBack={handleBackFromChat} />
         )}
       </div>
@@ -165,8 +190,6 @@ export function VocalCoachApp() {
         onClose={handleCloseUpload}
         onUploadComplete={handleUploadComplete}
       />
-
-
     </div>
   )
 }

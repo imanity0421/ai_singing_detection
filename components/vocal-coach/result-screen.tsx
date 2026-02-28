@@ -50,13 +50,12 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
   const [animatedTone, setAnimatedTone] = useState(0)
   const [showResult, setShowResult] = useState(false)
 
+  // Generate evaluation immediately - loading overlay in parent handles the wait
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const result = generateEvaluation(duration)
-      setEvaluation(result)
-      // Small delay before showing result for smooth transition
-      setTimeout(() => setShowResult(true), 100)
-    }, 2500)
+    const result = generateEvaluation(duration)
+    setEvaluation(result)
+    // Brief delay just for the fade-in animation to feel smooth
+    const timer = setTimeout(() => setShowResult(true), 200)
     return () => clearTimeout(timer)
   }, [duration])
 
