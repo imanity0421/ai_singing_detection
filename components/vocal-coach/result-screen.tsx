@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { RotateCcw, Save, Sparkles } from "lucide-react"
+import { RotateCcw, Save, Sparkles, MessageCircle } from "lucide-react"
 
 interface ResultScreenProps {
   duration: number
   onRetry: () => void
   onSave: (evaluation: EvaluationResult) => void
+  onOpenChat: () => void
 }
 
 export interface EvaluationResult {
@@ -42,7 +43,7 @@ function generateEvaluation(duration: number): EvaluationResult {
   }
 }
 
-export function ResultScreen({ duration, onRetry, onSave }: ResultScreenProps) {
+export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultScreenProps) {
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null)
   const [animatedScore, setAnimatedScore] = useState(0)
   const [animatedBreath, setAnimatedBreath] = useState(0)
@@ -146,11 +147,22 @@ export function ResultScreen({ duration, onRetry, onSave }: ResultScreenProps) {
           </div>
 
           {/* Comment */}
-          <div className="mb-8 rounded-3xl bg-accent p-6">
+          <div className="mb-5 rounded-3xl bg-accent p-6">
             <p className="text-center text-xl leading-relaxed font-medium text-accent-foreground">
               {evaluation.comment}
             </p>
           </div>
+
+          {/* Ask AI Teacher Button */}
+          <button
+            onClick={onOpenChat}
+            className="mb-6 flex w-full items-center justify-center gap-3 rounded-3xl bg-primary py-5 shadow-lg transition-all active:scale-[0.98]"
+          >
+            <MessageCircle className="h-6 w-6 text-primary-foreground" />
+            <span className="text-xl font-bold text-primary-foreground">
+              对点评有疑问？和AI老师聊聊
+            </span>
+          </button>
 
           {/* Actions */}
           <div className="mt-auto flex gap-3 pb-6">

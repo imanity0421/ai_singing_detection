@@ -1,16 +1,17 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Upload, Mic, ArrowLeft, Check, Music2, Trophy } from "lucide-react"
+import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, MessageCircle } from "lucide-react"
 
 interface RecordingScreenProps {
   onComplete: (duration: number) => void
   onUpload: () => void
   onOpenHistory: () => void
   historyCount: number
+  onOpenChat: () => void
 }
 
-export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCount }: RecordingScreenProps) {
+export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCount, onOpenChat }: RecordingScreenProps) {
   const [seconds, setSeconds] = useState(0)
   const [phase, setPhase] = useState<"idle" | "recording">("idle")
   const [showConfirm, setShowConfirm] = useState(false)
@@ -210,6 +211,17 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
           </div>
         )}
       </div>
+
+      {/* FAB - Ask AI Teacher */}
+      <button
+        onClick={onOpenChat}
+        className="fixed bottom-28 right-5 z-40 flex items-center gap-2 rounded-full bg-primary py-3.5 pl-4 pr-5 shadow-lg transition-all active:scale-95"
+        style={{ maxWidth: "calc(100% - 40px)" }}
+        aria-label="问老师"
+      >
+        <MessageCircle className="h-7 w-7 text-primary-foreground" />
+        <span className="text-lg font-bold text-primary-foreground">问老师</span>
+      </button>
 
       {/* Confirm Dialog Overlay */}
       {showConfirm && (

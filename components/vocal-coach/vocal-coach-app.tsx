@@ -5,6 +5,7 @@ import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
 import { UploadDialog } from "./upload-dialog"
+import { AiChatDrawer } from "./ai-chat-drawer"
 
 type Screen = "recording" | "result" | "history"
 
@@ -21,6 +22,13 @@ export function VocalCoachApp() {
   const [records, setRecords] = useState<HistoryRecord[]>(initialRecords)
   const [isLoading, setIsLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatFromResult, setChatFromResult] = useState(false)
+
+  const handleOpenChat = useCallback((fromResult = false) => {
+    setChatFromResult(fromResult)
+    setChatOpen(true)
+  }, [])
 
   const handleRecordingComplete = useCallback((duration: number) => {
     setLastDuration(duration)
@@ -93,6 +101,7 @@ export function VocalCoachApp() {
             onUpload={handleOpenUpload}
             onOpenHistory={handleOpenHistory}
             historyCount={records.length}
+            onOpenChat={() => handleOpenChat(false)}
           />
         )}
       </div>
@@ -107,6 +116,7 @@ export function VocalCoachApp() {
             duration={lastDuration}
             onRetry={handleRetry}
             onSave={handleSave}
+            onOpenChat={() => handleOpenChat(true)}
           />
         )}
       </div>
@@ -129,6 +139,13 @@ export function VocalCoachApp() {
         visible={showUpload}
         onClose={handleCloseUpload}
         onUploadComplete={handleUploadComplete}
+      />
+
+      {/* AI Chat Drawer */}
+      <AiChatDrawer
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        fromResult={chatFromResult}
       />
     </div>
   )
