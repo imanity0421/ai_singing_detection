@@ -1,11 +1,18 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
 import { UploadDialog } from "./upload-dialog"
-import { ChatScreen } from "./chat-screen"
+
+// Lazy-load ChatScreen so that the AI SDK bundle (~100KB+) is only fetched
+// when the user actually navigates to the chat page, keeping initial load fast.
+const ChatScreen = dynamic(
+  () => import("./chat-screen").then((m) => ({ default: m.ChatScreen })),
+  { ssr: false }
+)
 
 type Screen = "recording" | "result" | "history" | "chat"
 const VALID_SCREENS: Screen[] = ["recording", "result", "history", "chat"]
@@ -42,7 +49,8 @@ export function VocalCoachApp() {
   }, [screen])
 
   // Track which screens have been visited so we can lazy-mount them
-  const visitedRef = useRef<Set<Screen>>(new Set(["recording", readSavedScreen()]))
+  // Using state instead of ref so re-mounts (HMR / sandbox) correctly trigger re-render
+  const [visited, setVisited] = useState<Set<Screen>>(() => new Set(["recording", readSavedScreen()]))
 
   // Centralized timer refs - cancelable on unmount or re-trigger
   const loadingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -55,7 +63,12 @@ export function VocalCoachApp() {
   useEffect(() => clearLoadingTimers, [clearLoadingTimers])
 
   const navigateTo = useCallback((target: Screen) => {
-    visitedRef.current.add(target)
+    setVisited((prev) => {
+      if (prev.has(target)) return prev
+      const next = new Set(prev)
+      next.add(target)
+      return next
+    })
     setScreen(target)
   }, [])
 
@@ -134,7 +147,7 @@ export function VocalCoachApp() {
   }, [startLoadingSequence])
 
   // Helper: whether a screen should be mounted (once visited, stays mounted)
-  const shouldMount = (s: Screen) => visitedRef.current.has(s) || screen === s
+  const shouldMount = (s: Screen) => visited.has(s) || screen === s
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">

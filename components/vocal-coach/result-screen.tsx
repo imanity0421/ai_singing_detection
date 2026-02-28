@@ -335,11 +335,7 @@ export function ResultScreen({
           <div className="mx-5 mt-4">
             <button
               onClick={onOpenChat}
-              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl px-5 py-4 transition-all active:scale-[0.98]"
-              style={{
-                backgroundColor: "#FEF5EB",
-                border: "1.5px solid color-mix(in srgb, var(--primary) 18%, transparent)",
-              }}
+              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border border-primary/18 bg-warm-card px-5 py-4 transition-all active:scale-[0.98]"
             >
               {/* Icon circle */}
               <span

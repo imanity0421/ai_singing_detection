@@ -30,12 +30,12 @@ export function HistoryScreen({ records, onBack }: HistoryScreenProps) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background px-6 py-8">
+    <div className="flex min-h-dvh flex-col bg-background px-6 pb-8 pt-12">
       {/* Header */}
       <div className="mb-2 flex items-center gap-4">
         <button
           onClick={onBack}
-          className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card text-foreground shadow-sm transition-all active:scale-95"
+          className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-foreground transition-all active:scale-95"
           aria-label="返回"
         >
           <ArrowLeft className="h-6 w-6" />
@@ -73,7 +73,7 @@ export function HistoryScreen({ records, onBack }: HistoryScreenProps) {
           <p className="text-lg text-muted-foreground">{"\u5B8C\u6210\u4E00\u6B21\u7EC3\u6B4C\u540E\uFF0C\u4F5C\u54C1\u4F1A\u51FA\u73B0\u5728\u8FD9\u91CC"}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {records.map((record, index) => (
             <div
               key={record.id}

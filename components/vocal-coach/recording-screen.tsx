@@ -189,8 +189,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         <div className="mt-6">
           <button
             onClick={onOpenChat}
-            className="flex w-full items-center gap-4 rounded-3xl p-5 shadow-sm transition-all active:scale-[0.98]"
-            style={{ backgroundColor: "#FEF5EB" }}
+            className="flex w-full items-center gap-4 rounded-3xl bg-warm-card p-5 shadow-sm transition-all active:scale-[0.98]"
           >
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary">
               <span className="text-sm font-black text-primary-foreground">AI</span>
@@ -200,8 +199,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               <p className="text-sm text-muted-foreground">{"\u968F\u65F6\u548CAI\u58F0\u4E50\u5BFC\u5E08\u804A\u804A"}</p>
             </div>
             <div
-              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
-              style={{ backgroundColor: "#FDDBB5" }}
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/25"
             >
               <ChevronRight className="h-4 w-4 text-primary" />
             </div>
@@ -243,7 +241,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
                 {"录音已暂停"}
               </p>
             ) : (
-              <div className="flex items-center justify-center gap-3 rounded-2xl px-5 py-2.5" style={{ backgroundColor: "rgba(247, 128, 0, 0.08)" }}>
+              <div className="flex items-center justify-center gap-3 rounded-2xl bg-primary/8 px-5 py-2.5">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" style={{ animationDuration: "1.5s" }} />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
@@ -305,8 +303,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
                 {/* Replay from start */}
                 <button
                   onClick={handleReplay}
-                  className="mt-4 flex items-center gap-1.5 rounded-xl px-4 py-2 text-base font-medium text-muted-foreground transition-all active:scale-95"
-                  style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+                  className="mt-4 flex items-center gap-1.5 rounded-xl bg-foreground/4 px-4 py-2 text-base font-medium text-muted-foreground transition-all active:scale-95"
                   aria-label="从头播放"
                 >
                   <RotateCcw className="h-4 w-4" />
