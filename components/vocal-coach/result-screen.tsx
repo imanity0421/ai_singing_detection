@@ -35,7 +35,7 @@ function generateEvaluation(duration: number): EvaluationResult {
   const breathStability = Math.min(50 + Math.floor(Math.random() * 45), 95)
   const toneBrightness = Math.min(55 + Math.floor(Math.random() * 40), 95)
   // Always warm & encouraging — minimum A, no "failure" feelings for elderly users
-  const label = score >= 95 ? "SSS" : score >= 88 ? "SS" : score >= 78 ? "S" : "A"
+  const label = score >= 93 ? "SSS" : score >= 85 ? "SS" : score >= 75 ? "S" : "A"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -137,28 +137,39 @@ const timbreTags = [
 ]
 
 /* ---------- Grade config: warm color palette + cheer line ---------- */
-const GRADE_CONFIG: Record<string, { color: string; glow: string; subtitle: string; cheer: string }> = {
+const GRADE_CONFIG: Record<
+  string,
+  { color: string; colorEnd: string; glow: string; subtitle: string; cheer: string; ring: string }
+> = {
   SSS: {
-    color: "#C2410C",
-    glow: "rgba(194,65,12,0.18)",
+    color: "#B93A04",
+    colorEnd: "#E86A20",
+    glow: "rgba(185,58,4,0.22)",
+    ring: "rgba(185,58,4,0.35)",
     subtitle: "超凡表现",
     cheer: "惊艳全场！您就是天生的歌唱家！",
   },
   SS: {
-    color: "#D96B00",
-    glow: "rgba(217,107,0,0.16)",
+    color: "#C85A00",
+    colorEnd: "#F09030",
+    glow: "rgba(200,90,0,0.18)",
+    ring: "rgba(200,90,0,0.30)",
     subtitle: "卓越演唱",
     cheer: "太棒了，您的声音充满故事感！",
   },
   S: {
-    color: "#E8963A",
-    glow: "rgba(232,150,58,0.14)",
+    color: "#D97B1A",
+    colorEnd: "#F0B050",
+    glow: "rgba(217,123,26,0.15)",
+    ring: "rgba(217,123,26,0.25)",
     subtitle: "精彩绝伦",
     cheer: "非常出色，继续保持这份热情！",
   },
   A: {
-    color: "#E8A040",
-    glow: "rgba(232,160,64,0.12)",
+    color: "#D4922E",
+    colorEnd: "#F0C868",
+    glow: "rgba(212,146,46,0.13)",
+    ring: "rgba(212,146,46,0.22)",
     subtitle: "出色发挥",
     cheer: "表现得真好，越唱越有味道！",
   },
@@ -235,36 +246,52 @@ export function ResultScreen({
           <div
             className="flex flex-col items-center gap-2 px-6 pt-12 pb-4"
             style={{
-              background: `radial-gradient(ellipse 60% 50% at 50% 30%, ${grade.glow} 0%, transparent 100%)`,
+              background: `radial-gradient(ellipse 70% 55% at 50% 25%, ${grade.glow} 0%, transparent 100%)`,
             }}
           >
-            {/* Level badge — double ring for achievement feel */}
-            <div className="relative flex items-center justify-center" style={{ width: 108, height: 108 }}>
-              {/* Outer glow ring */}
+            {/* Level badge — triple-layer ring for strong achievement feel */}
+            <div className="relative flex items-center justify-center" style={{ width: 120, height: 120 }}>
+              {/* Outermost soft halo */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  inset: -6,
+                  background: `radial-gradient(circle, ${grade.ring} 0%, transparent 70%)`,
+                  filter: "blur(6px)",
+                }}
+              />
+              {/* Outer decorative ring */}
               <div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: `conic-gradient(from 0deg, ${grade.color}22, ${grade.color}44, ${grade.color}22)`,
-                  filter: `blur(1px)`,
+                  background: `conic-gradient(from 0deg, ${grade.color}18, ${grade.color}40, ${grade.color}18, ${grade.color}40, ${grade.color}18)`,
+                }}
+              />
+              {/* Inner ring border */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  inset: 4,
+                  background: `linear-gradient(145deg, ${grade.color}30, ${grade.colorEnd}20)`,
                 }}
               />
               {/* Main badge */}
               <div
-                className="relative z-10 flex items-center justify-center rounded-full shadow-xl"
+                className="relative z-10 flex items-center justify-center rounded-full"
                 style={{
-                  width: 96,
-                  height: 96,
-                  background: `linear-gradient(145deg, color-mix(in srgb, ${grade.color} 18%, white), color-mix(in srgb, ${grade.color} 6%, white))`,
-                  boxShadow: `0 6px 28px ${grade.glow}, inset 0 1px 2px rgba(255,255,255,0.6)`,
+                  width: 100,
+                  height: 100,
+                  background: `linear-gradient(145deg, color-mix(in srgb, ${grade.color} 14%, white), color-mix(in srgb, ${grade.colorEnd} 8%, white))`,
+                  boxShadow: `0 8px 32px ${grade.glow}, inset 0 2px 4px rgba(255,255,255,0.7), inset 0 -1px 2px ${grade.color}12`,
                 }}
               >
                 <span
                   className="font-black leading-none"
                   style={{
                     color: grade.color,
-                    fontSize: scoreLabel.length >= 3 ? 32 : scoreLabel.length === 2 ? 38 : 48,
-                    letterSpacing: scoreLabel.length >= 2 ? "0.04em" : undefined,
-                    textShadow: `0 2px 8px ${grade.glow}`,
+                    fontSize: scoreLabel.length >= 3 ? 30 : scoreLabel.length === 2 ? 38 : 48,
+                    letterSpacing: scoreLabel.length >= 2 ? "0.06em" : undefined,
+                    textShadow: `0 2px 10px ${grade.glow}`,
                   }}
                 >
                   {scoreLabel}
@@ -272,18 +299,19 @@ export function ResultScreen({
               </div>
             </div>
 
-            {/* Warm sub-label */}
+            {/* Warm sub-label pill */}
             <span
-              className="mt-1 rounded-lg px-4 py-1 text-sm font-bold"
+              className="mt-2 rounded-full px-5 py-1.5 text-sm font-bold tracking-wide"
               style={{
-                backgroundColor: `color-mix(in srgb, ${grade.color} 10%, transparent)`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${grade.color} 12%, transparent), color-mix(in srgb, ${grade.colorEnd} 8%, transparent))`,
                 color: grade.color,
+                boxShadow: `0 1px 6px ${grade.glow}`,
               }}
             >
               {grade.subtitle}
             </span>
 
-            <div className="mt-1 flex items-baseline gap-1.5">
+            <div className="mt-2 flex items-baseline gap-1.5">
               <span className="text-6xl font-black text-foreground">{animatedScore}</span>
               <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
@@ -312,37 +340,57 @@ export function ResultScreen({
             </div>
           </div>
 
-          {/* Chat Entry Button — visually prominent with subtle glow */}
+          {/* Chat Entry Button — micro-gradient, border glow, icon bg, right chevron */}
           <div className="mx-5 mt-4">
             <button
               onClick={onOpenChat}
-              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border border-primary/15 px-5 py-4 shadow-sm transition-all active:scale-[0.97]"
+              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border px-5 py-4 transition-all active:scale-[0.97]"
               style={{
-                background: "linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--card)), color-mix(in srgb, var(--primary) 4%, var(--card)))",
+                background: "linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--card)), color-mix(in srgb, var(--primary) 4%, var(--card)))",
+                borderColor: "color-mix(in srgb, var(--primary) 18%, transparent)",
+                boxShadow: "0 2px 12px color-mix(in srgb, var(--primary) 8%, transparent), inset 0 1px 0 rgba(255,255,255,0.5)",
               }}
             >
-              {/* Subtle shimmer layer */}
+              {/* Shimmer accent */}
               <div
-                className="pointer-events-none absolute inset-0 opacity-40"
+                className="pointer-events-none absolute inset-0"
                 style={{
-                  background: "linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--primary) 8%, transparent) 50%, transparent 60%)",
+                  background: "linear-gradient(105deg, transparent 38%, color-mix(in srgb, var(--primary) 6%, transparent) 50%, transparent 62%)",
                 }}
               />
-              <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary shadow-md">
+              {/* Top-edge glow line */}
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                style={{
+                  background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 25%, transparent), transparent)",
+                }}
+              />
+              {/* Icon with gradient background */}
+              <div
+                className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full shadow-md"
+                style={{
+                  background: `linear-gradient(145deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #F5C07A))`,
+                }}
+              >
                 <MessageCircle className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="relative text-lg font-bold text-primary">
-                {"对点评有疑问？和AI老师聊聊"}
-              </span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                className="relative ml-auto text-primary/60 transition-transform group-active:translate-x-0.5"
+              <div className="relative flex flex-col items-start">
+                <span className="text-lg font-bold leading-snug text-primary">
+                  {"对点评有疑问？"}
+                </span>
+                <span className="text-sm font-medium text-primary/65">
+                  {"和AI老师聊聊"}
+                </span>
+              </div>
+              {/* Right chevron with bg circle */}
+              <div
+                className="relative ml-auto flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-transform group-active:translate-x-0.5"
+                style={{ backgroundColor: "color-mix(in srgb, var(--primary) 10%, transparent)" }}
               >
-                <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-primary/70">
+                  <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
             </button>
           </div>
 
