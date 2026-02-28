@@ -317,7 +317,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
 
             {/* Encouraging note */}
             <p className="text-center text-base leading-relaxed text-muted-foreground">
-              {"不满意可以重录，没有次数限制"}
+              {"不满意可以���录，没有次数限制"}
             </p>
           </div>
         ) : (
@@ -499,28 +499,23 @@ function RecordingStatusText() {
   )
 }
 
-/* Animated waveform bar */
+/*
+ * Animated waveform bar — pure CSS animation.
+ * Each bar gets a unique animation-delay derived from its index so the bars
+ * ripple naturally. When inactive the bar shrinks to 12px via inline style.
+ * This eliminates 28 x setInterval (233 re-renders/s) from the old approach.
+ */
 function WaveBar({ index, isActive }: { index: number; isActive: boolean }) {
-  const [height, setHeight] = useState(20)
-
-  useEffect(() => {
-    if (!isActive) {
-      setHeight(12)
-      return
-    }
-    const interval = setInterval(() => {
-      const base = 16
-      const wave = Math.sin(Date.now() / 300 + index * 0.6) * 20
-      const random = Math.random() * 24
-      setHeight(Math.max(8, base + wave + random))
-    }, 120 + index * 8)
-    return () => clearInterval(interval)
-  }, [index, isActive])
-
   return (
     <div
-      className="w-1.5 rounded-full bg-primary/70 transition-all duration-150"
-      style={{ height: `${height}px` }}
+      className="w-1.5 rounded-full bg-primary/70"
+      style={{
+        height: isActive ? undefined : 12,
+        transition: isActive ? "none" : "height 0.3s ease",
+        animation: isActive
+          ? `waveBar 0.8s ease-in-out ${index * 0.04}s infinite alternate`
+          : "none",
+      }}
     />
   )
 }

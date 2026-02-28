@@ -136,14 +136,40 @@ export function VocalCoachApp() {
   // Helper: whether a screen should be mounted (once visited, stays mounted)
   const shouldMount = (s: Screen) => visitedRef.current.has(s) || screen === s
 
+  /*
+   * Screen transition helper.
+   * Active screen: translate-x-0 + opacity-100 + pointer-events auto.
+   * Inactive:      slide out to +/- 30% + opacity-0 + pointer-events-none.
+   *
+   * We use a small 30% offset (instead of 100%) for a smoother, gentler slide.
+   * We scope transitions to only transform + opacity via a CSS class below,
+   * avoiding `transition-all` which would also animate inset/height/background
+   * and cause janky frames.
+   *
+   * The `prevScreen` ref tracks navigation direction so "going back" plays the
+   * reverse slide direction.
+   */
+  const screenOrder: Screen[] = ["recording", "result", "history", "chat"]
+  const currentIdx = screenOrder.indexOf(screen)
+
+  function screenClasses(s: Screen): string {
+    const isActive = screen === s
+    const sIdx = screenOrder.indexOf(s)
+    // Determine which direction the inactive screen should slide to
+    const offscreen = sIdx < currentIdx ? "-translate-x-[30%]" : "translate-x-[30%]"
+    return [
+      "absolute inset-0 will-change-[transform,opacity]",
+      "transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(.4,0,.2,1)]",
+      isActive
+        ? "translate-x-0 opacity-100 z-10"
+        : `${offscreen} opacity-0 pointer-events-none z-0`,
+    ].join(" ")
+  }
+
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">
-      {/* All screens stay mounted once visited - prevents state loss */}
-      <div
-        className={`transition-all duration-500 ease-in-out ${
-          screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none absolute inset-0"
-        }`}
-      >
+      {/* All screens stay mounted once visited — prevents state loss */}
+      <div className={screenClasses("recording")}>
         {shouldMount("recording") && (
           <RecordingScreen
             onComplete={handleRecordingComplete}
@@ -155,11 +181,7 @@ export function VocalCoachApp() {
         )}
       </div>
 
-      <div
-        className={`transition-all duration-500 ease-in-out ${
-          screen === "result" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
-        }`}
-      >
+      <div className={screenClasses("result")}>
         {shouldMount("result") && (
           <ResultScreen
             duration={lastDuration}
@@ -172,27 +194,19 @@ export function VocalCoachApp() {
         )}
       </div>
 
-      <div
-        className={`transition-all duration-500 ease-in-out ${
-          screen === "history" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
-        }`}
-      >
+      <div className={screenClasses("history")}>
         {shouldMount("history") && (
           <HistoryScreen records={records} onBack={handleBackFromHistory} />
         )}
       </div>
 
-      <div
-        className={`transition-all duration-500 ease-in-out ${
-          screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
-        }`}
-      >
+      <div className={screenClasses("chat")}>
         {shouldMount("chat") && (
           <ChatScreen fromResult={chatFromResult} onBack={handleBackFromChat} />
         )}
       </div>
 
-      {/* Loading Overlay - renders on top of everything */}
+      {/* Loading Overlay — renders on top of everything */}
       <LoadingOverlay visible={isLoading} stage={loadingStage} />
 
       {/* Upload Dialog */}
