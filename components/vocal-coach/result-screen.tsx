@@ -251,7 +251,7 @@ export function ResultScreen({
   return (
     <div
       ref={scrollRef}
-      className={`flex h-full min-h-dvh flex-col overflow-y-auto bg-background pb-4 transition-opacity duration-400 ${showResult ? "opacity-100" : "opacity-0"}`}
+      className={`flex min-h-dvh flex-col overflow-y-auto bg-background pb-32 transition-opacity duration-500 ${showResult ? "opacity-100" : "opacity-0"}`}
     >
       {!showResult || !evaluation ? null : (
         <>
@@ -530,30 +530,27 @@ export function ResultScreen({
         </>
       )}
 
-      {/* ==================== STICKY BOTTOM BAR ====================
-           Uses `sticky` instead of `fixed` so it stays within the
-           scrollable container and doesn't escape overflow-hidden.
-           The negative margin-top pulls it over the bottom padding. */}
-      {showResult && evaluation && (
-        <div className="sticky bottom-0 z-40 border-t border-border bg-card/95 px-5 pb-8 pt-3 backdrop-blur-sm">
+      {/* ==================== STICKY BOTTOM BAR ==================== */}
+      {showResult && evaluation && active && (
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-border bg-card/95 px-5 pb-8 pt-3 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={onRetry}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-colors active:scale-[0.98]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
             >
               <RotateCcw className="h-5 w-5 text-foreground" />
               <span className="text-sm font-bold text-foreground">{"再唱一次"}</span>
             </button>
             <button
               onClick={handleShare}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-colors active:scale-[0.98]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
             >
               <Share2 className="h-5 w-5 text-foreground" />
               <span className="text-sm font-bold text-foreground">{"分享报告"}</span>
             </button>
             <button
               onClick={onGoHome ?? onRetry}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-colors active:scale-[0.98]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
             >
               <Home className="h-5 w-5 text-foreground" />
               <span className="text-sm font-bold text-foreground">{"返回主页"}</span>
@@ -571,7 +568,7 @@ export function LoadingOverlay({ visible, stage = "uploading" }: { visible: bool
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-500 ${
         visible ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
     >

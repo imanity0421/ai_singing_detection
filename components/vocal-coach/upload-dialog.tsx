@@ -41,7 +41,7 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
   if (!visible) return null
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
@@ -49,7 +49,7 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
       />
 
       {/* Dialog */}
-      <div className="relative z-10 mx-4 mb-6 w-full max-w-md rounded-3xl bg-card p-6 shadow-xl sm:mb-0 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="relative z-10 mx-4 mb-6 w-full max-w-md rounded-3xl bg-card p-6 shadow-xl sm:mb-0">
         {/* Close */}
         <button
           onClick={handleClose}
