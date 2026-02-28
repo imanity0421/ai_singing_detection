@@ -119,7 +119,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         <div className="mt-6">
           <button
             onClick={onOpenChat}
-            className="flex w-full items-center gap-4 rounded-3xl border-l-4 border-primary bg-card p-5 shadow-sm transition-all active:scale-[0.98]"
+            className="flex w-full items-center gap-4 rounded-3xl bg-primary/8 p-5 transition-all active:scale-[0.98]"
           >
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary shadow-md">
               <span className="text-base font-black text-primary-foreground">AI</span>
@@ -128,7 +128,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               <p className="text-lg font-bold text-foreground">{"\u6709\u5531\u6B4C\u7684\u7591\u95EE\uFF1F"}</p>
               <p className="text-sm text-muted-foreground">{"\u968F\u65F6\u548CAI\u58F0\u4E50\u5BFC\u5E08\u804A\u804A"}</p>
             </div>
-            <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+            <ChevronRight className="h-5 w-5 flex-shrink-0 text-primary/60" />
           </button>
         </div>
       )}
@@ -231,9 +231,9 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
             </button>
             <button
               onClick={onUpload}
-              className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-3xl bg-card py-5 shadow-sm ring-1 ring-border/60 transition-all active:scale-[0.98]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-3xl bg-card py-5 shadow-sm transition-all active:scale-[0.98]"
             >
-              <Upload className="h-5 w-5 text-muted-foreground" />
+              <Upload className="h-6 w-6 text-foreground" />
               <span className="text-sm font-bold text-foreground">上传音频</span>
             </button>
           </div>
