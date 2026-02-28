@@ -167,11 +167,12 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
       <div className="flex flex-col gap-3 pb-2" style={{ minHeight: "112px" }}>
         {/* Hint row: always rendered to preserve height, invisible when not needed */}
         <p
+          suppressHydrationWarning
           className={`text-center text-base text-muted-foreground transition-opacity ${
             isRecording && seconds < 3 ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          {"\u81F3\u5C11\u5F55\u52363\u79D2\u54E6"}
+          {"至少录制3秒哦"}
         </p>
 
         {phase === "idle" ? (
