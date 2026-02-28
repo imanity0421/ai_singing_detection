@@ -119,7 +119,7 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         <div className="mt-6">
           <button
             onClick={onOpenChat}
-            className="flex w-full items-center gap-4 rounded-3xl bg-card p-5 shadow-sm transition-all active:scale-[0.98]"
+            className="flex w-full items-center gap-4 rounded-3xl border-l-4 border-primary bg-card p-5 shadow-sm transition-all active:scale-[0.98]"
           >
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary shadow-md">
               <span className="text-base font-black text-primary-foreground">AI</span>
@@ -167,30 +167,43 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
           </div>
         ) : (
           /* --- Idle State: Disc-style visual --- */
-          <div className="flex flex-col items-center gap-5">
-            {/* Vinyl disc visual */}
+          <div className="flex flex-col items-center gap-4">
+            {/* Ambient glow behind disc */}
             <div className="relative flex h-56 w-56 items-center justify-center">
-              {/* Outer disc - looks like a vinyl record */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-secondary via-border to-secondary shadow-lg" />
-              {/* Track grooves - subtle rings */}
-              <div className="absolute inset-3 rounded-full border border-muted-foreground/10" />
-              <div className="absolute inset-6 rounded-full border border-muted-foreground/8" />
-              <div className="absolute inset-10 rounded-full border border-muted-foreground/6" />
-              <div className="absolute inset-14 rounded-full border border-muted-foreground/5" />
-              {/* Center label */}
-              <div className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full bg-primary shadow-md">
-                <Mic className="h-9 w-9 text-primary-foreground" />
+              <div className="absolute -inset-4 rounded-full bg-primary/6 blur-2xl" />
+              {/* Vinyl disc visual */}
+              <div className="relative flex h-56 w-56 items-center justify-center">
+                {/* Outer disc - looks like a vinyl record */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-secondary via-border to-secondary shadow-lg" />
+                {/* Track grooves - subtle rings */}
+                <div className="absolute inset-3 rounded-full border border-muted-foreground/10" />
+                <div className="absolute inset-6 rounded-full border border-muted-foreground/8" />
+                <div className="absolute inset-10 rounded-full border border-muted-foreground/6" />
+                <div className="absolute inset-14 rounded-full border border-muted-foreground/5" />
+                {/* Center label */}
+                <div className="relative z-10 flex h-24 w-24 flex-col items-center justify-center rounded-full bg-primary shadow-md">
+                  <Mic className="h-9 w-9 text-primary-foreground" />
+                </div>
+                {/* Spinning note decorations */}
+                <NoteOrbit />
               </div>
-              {/* Spinning note decorations */}
-              <NoteOrbit />
             </div>
-            <p className="text-center text-xl font-bold text-foreground">{"\u51C6\u5907\u597D\u4E86\u5417\uFF1F"}</p>
-            <p
-              className={`text-center text-base text-muted-foreground transition-opacity duration-400 ${tipFade ? "opacity-100" : "opacity-0"}`}
-              suppressHydrationWarning
-            >
-              {TIPS[tipIndex]}
-            </p>
+
+            {/* Text area below disc */}
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <p className="text-center text-2xl font-black text-foreground">{"\u51C6\u5907\u597D\u4E86\u5417\uFF1F"}</p>
+              <div className="flex items-center gap-2">
+                <span className="h-px w-8 bg-primary/30" />
+                <Music2 className="h-4 w-4 text-primary/50" />
+                <span className="h-px w-8 bg-primary/30" />
+              </div>
+              <p
+                className={`max-w-[260px] text-center text-base leading-relaxed text-muted-foreground transition-opacity duration-400 ${tipFade ? "opacity-100" : "opacity-0"}`}
+                suppressHydrationWarning
+              >
+                {TIPS[tipIndex]}
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -211,16 +224,16 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
           <div className="flex items-center gap-3">
             <button
               onClick={startRecording}
-              className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg transition-all active:scale-[0.98]"
+              className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
             >
               <Mic className="h-6 w-6" />
               <span>开始录歌</span>
             </button>
             <button
               onClick={onUpload}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-3xl bg-card py-5 shadow-sm transition-all active:scale-[0.98]"
+              className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-3xl bg-card py-5 shadow-sm ring-1 ring-border/60 transition-all active:scale-[0.98]"
             >
-              <Upload className="h-6 w-6 text-foreground" />
+              <Upload className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm font-bold text-foreground">上传音频</span>
             </button>
           </div>
