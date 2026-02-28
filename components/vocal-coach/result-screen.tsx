@@ -28,14 +28,13 @@ export interface EvaluationResult {
   comment: string
 }
 
-// Simulated AI evaluation — floor is 72 so the lowest grade is always A ("出色发挥")
+// Simulated AI evaluation
 function generateEvaluation(duration: number): EvaluationResult {
-  const rawBase = Math.min(60 + Math.floor(duration / 3), 98)
-  const raw = Math.min(rawBase + Math.floor(Math.random() * 8), 99)
-  const score = Math.max(raw, 72) // never lower than 72 → guaranteed A+
-  const breathStability = Math.min(60 + Math.floor(Math.random() * 35), 95)
-  const toneBrightness = Math.min(60 + Math.floor(Math.random() * 35), 95)
-  const label = score >= 93 ? "SSS" : score >= 85 ? "SS" : score >= 78 ? "S" : "A"
+  const baseScore = Math.min(60 + Math.floor(duration / 3), 98)
+  const score = Math.min(baseScore + Math.floor(Math.random() * 8), 99)
+  const breathStability = Math.min(50 + Math.floor(Math.random() * 45), 95)
+  const toneBrightness = Math.min(55 + Math.floor(Math.random() * 40), 95)
+  const label = score >= 90 ? "S" : score >= 80 ? "A" : score >= 70 ? "B" : "C"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -136,56 +135,12 @@ const timbreTags = [
   { name: "甜美", pct: 30, bg: "#C4A882" },
 ]
 
-/* ---------- Grade config: warm colour palette + cheer line ---------- */
-const GRADE_CONFIG: Record<
-  string,
-  {
-    color: string
-    colorEnd: string
-    glow: string
-    ring: string
-    subtitle: string
-    cheer: string
-    /** Extra radial layers count (1-3), higher = more decorative */
-    ringLayers: number
-  }
-> = {
-  SSS: {
-    color: "#B93A04",
-    colorEnd: "#E86A20",
-    glow: "rgba(185,58,4,0.24)",
-    ring: "rgba(185,58,4,0.38)",
-    subtitle: "超凡表现",
-    cheer: "惊艳全场！您就是天生的歌唱家！",
-    ringLayers: 3,
-  },
-  SS: {
-    color: "#C85A00",
-    colorEnd: "#F09030",
-    glow: "rgba(200,90,0,0.20)",
-    ring: "rgba(200,90,0,0.32)",
-    subtitle: "卓越演唱",
-    cheer: "太棒了，您的声音充满故事感！",
-    ringLayers: 2,
-  },
-  S: {
-    color: "#D97B1A",
-    colorEnd: "#F0B050",
-    glow: "rgba(217,123,26,0.16)",
-    ring: "rgba(217,123,26,0.26)",
-    subtitle: "精彩绝伦",
-    cheer: "非常出色，继续保持这份热情！",
-    ringLayers: 2,
-  },
-  A: {
-    color: "#D4922E",
-    colorEnd: "#F0C868",
-    glow: "rgba(212,146,46,0.14)",
-    ring: "rgba(212,146,46,0.22)",
-    subtitle: "出色发挥",
-    cheer: "表现得真好，越唱越有味道！",
-    ringLayers: 1,
-  },
+/* ---------- Cheering line based on score ---------- */
+function getCheerLine(score: number) {
+  if (score >= 90) return "太棒了，您的声音充满故事感！"
+  if (score >= 80) return "非常出色，继续保持这份热情！"
+  if (score >= 70) return "表现得很稳，再练练会更好！"
+  return "每一次开口都是进步，加油！"
 }
 
 export function ResultScreen({
@@ -243,8 +198,13 @@ export function ResultScreen({
     if (evaluation) onSave(evaluation)
   }, [evaluation, onSave])
 
-  const scoreLabel = evaluation?.label ?? "A"
-  const grade = GRADE_CONFIG[scoreLabel] ?? GRADE_CONFIG.A
+  const scoreLabel = evaluation?.label ?? "S"
+  const scoreLabelColor =
+    scoreLabel === "S"
+      ? "#D96B00"
+      : scoreLabel === "A"
+        ? "#E8A040"
+        : "#8A7D6F"
 
   return (
     <div
@@ -255,110 +215,25 @@ export function ResultScreen({
         <>
           {/* ==================== PART 1: Emotion & Core Conclusion ==================== */}
 
-          {/* Score Hero — warm radial glow background */}
-          <div
-            className="flex flex-col items-center gap-2 px-6 pt-10 pb-6"
-            style={{
-              background: `radial-gradient(ellipse 80% 60% at 50% 20%, ${grade.glow} 0%, transparent 100%)`,
-            }}
-          >
-            {/* ---- Achievement Badge ---- */}
+          {/* Score Hero */}
+          <div className="flex flex-col items-center gap-3 px-6 pt-12 pb-2">
+            {/* Level badge */}
             <div
-              className="relative flex items-center justify-center"
-              style={{ width: 140, height: 140 }}
-            >
-              {/* Soft outer halo */}
-              <div
-                className="absolute rounded-full"
-                style={{
-                  inset: -10,
-                  background: `radial-gradient(circle, ${grade.ring} 0%, transparent 70%)`,
-                  filter: "blur(10px)",
-                }}
-              />
-
-              {/* Extra decorative rings based on grade level */}
-              {grade.ringLayers >= 3 && (
-                <div
-                  className="absolute rounded-full"
-                  style={{
-                    inset: -4,
-                    border: `2px solid ${grade.color}25`,
-                  }}
-                />
-              )}
-              {grade.ringLayers >= 2 && (
-                <div
-                  className="absolute rounded-full"
-                  style={{
-                    inset: 2,
-                    border: `1.5px dashed ${grade.color}22`,
-                  }}
-                />
-              )}
-
-              {/* Main conic ring */}
-              <div
-                className="absolute rounded-full"
-                style={{
-                  inset: 8,
-                  background: `conic-gradient(from 0deg, ${grade.color}20, ${grade.color}48, ${grade.color}20, ${grade.color}48, ${grade.color}20)`,
-                }}
-              />
-
-              {/* Inner fill ring */}
-              <div
-                className="absolute rounded-full"
-                style={{
-                  inset: 12,
-                  background: `linear-gradient(150deg, ${grade.color}28, ${grade.colorEnd}18)`,
-                }}
-              />
-
-              {/* Central badge disc */}
-              <div
-                className="relative z-10 flex items-center justify-center rounded-full"
-                style={{
-                  width: 104,
-                  height: 104,
-                  background: `linear-gradient(150deg, color-mix(in srgb, ${grade.color} 13%, white), color-mix(in srgb, ${grade.colorEnd} 7%, white))`,
-                  boxShadow: `0 10px 36px ${grade.glow}, inset 0 2px 6px rgba(255,255,255,0.75), inset 0 -2px 4px ${grade.color}10`,
-                }}
-              >
-                <span
-                  className="font-black leading-none tracking-wide"
-                  style={{
-                    color: grade.color,
-                    fontSize: scoreLabel.length >= 3 ? 32 : scoreLabel.length === 2 ? 40 : 52,
-                    textShadow: `0 2px 12px ${grade.glow}`,
-                  }}
-                >
-                  {scoreLabel}
-                </span>
-              </div>
-            </div>
-
-            {/* Sub-label pill */}
-            <span
-              className="mt-1 rounded-full px-6 py-1.5 text-base font-bold tracking-widest"
+              className="flex h-20 w-20 items-center justify-center rounded-full"
               style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${grade.color} 14%, transparent), color-mix(in srgb, ${grade.colorEnd} 10%, transparent))`,
-                color: grade.color,
-                boxShadow: `0 2px 8px ${grade.glow}`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${scoreLabelColor} 15%, transparent), color-mix(in srgb, ${scoreLabelColor} 6%, transparent))`,
               }}
             >
-              {grade.subtitle}
-            </span>
-
-            {/* Numeric score */}
-            <div className="mt-3 flex items-baseline gap-1.5">
+              <span className="text-5xl font-black" style={{ color: scoreLabelColor }}>
+                {scoreLabel}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
               <span className="text-6xl font-black text-foreground">{animatedScore}</span>
               <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
-
-            {/* Cheer text */}
-            <p className="mt-1 max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
-              {grade.cheer}
+            <p className="max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
+              {getCheerLine(evaluation.score)}
             </p>
           </div>
 
@@ -382,57 +257,17 @@ export function ResultScreen({
             </div>
           </div>
 
-          {/* Chat Entry Button — micro-gradient, border glow, icon bg, right chevron */}
+          {/* Chat Entry Button */}
           <div className="mx-5 mt-4">
             <button
               onClick={onOpenChat}
-              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border px-5 py-4 transition-all active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--card)), color-mix(in srgb, var(--primary) 4%, var(--card)))",
-                borderColor: "color-mix(in srgb, var(--primary) 18%, transparent)",
-                boxShadow: "0 2px 12px color-mix(in srgb, var(--primary) 8%, transparent), inset 0 1px 0 rgba(255,255,255,0.5)",
-              }}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl py-4 transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "#FEF5EB" }}
             >
-              {/* Shimmer accent */}
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background: "linear-gradient(105deg, transparent 38%, color-mix(in srgb, var(--primary) 6%, transparent) 50%, transparent 62%)",
-                }}
-              />
-              {/* Top-edge glow line */}
-              <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-px"
-                style={{
-                  background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 25%, transparent), transparent)",
-                }}
-              />
-              {/* Icon with gradient background */}
-              <div
-                className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full shadow-md"
-                style={{
-                  background: `linear-gradient(145deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #F5C07A))`,
-                }}
-              >
-                <MessageCircle className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div className="relative flex flex-col items-start">
-                <span className="text-lg font-bold leading-snug text-primary">
-                  {"对点评有疑问？"}
-                </span>
-                <span className="text-sm font-medium text-primary/65">
-                  {"和AI老师聊聊"}
-                </span>
-              </div>
-              {/* Right chevron with bg circle */}
-              <div
-                className="relative ml-auto flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-transform group-active:translate-x-0.5"
-                style={{ backgroundColor: "color-mix(in srgb, var(--primary) 10%, transparent)" }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-primary/70">
-                  <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <span className="text-lg font-bold text-primary">
+                {"对点评有疑问？和AI老师聊聊"}
+              </span>
             </button>
           </div>
 
@@ -554,33 +389,30 @@ export function ResultScreen({
         </>
       )}
 
-      {/* ==================== FLOATING BOTTOM BAR ==================== */}
+      {/* ==================== STICKY BOTTOM BAR ==================== */}
       {showResult && evaluation && active && (
-        <div className="fixed inset-x-0 bottom-6 z-40 mx-auto w-[calc(100%-2.5rem)] max-w-[360px]">
-          <div
-            className="flex items-center gap-2 rounded-full bg-card px-3 py-2.5 shadow-xl"
-            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)" }}
-          >
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-border bg-card/95 px-5 pb-8 pt-3 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
             <button
               onClick={onRetry}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-secondary py-3 transition-all active:scale-[0.96]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
             >
-              <RotateCcw className="h-4.5 w-4.5 text-foreground" />
+              <RotateCcw className="h-5 w-5 text-foreground" />
               <span className="text-sm font-bold text-foreground">{"再唱一次"}</span>
             </button>
             <button
               onClick={handleShare}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-secondary py-3 transition-all active:scale-[0.96]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
             >
-              <Share2 className="h-4.5 w-4.5 text-foreground" />
-              <span className="text-sm font-bold text-foreground">{"分享"}</span>
+              <Share2 className="h-5 w-5 text-foreground" />
+              <span className="text-sm font-bold text-foreground">{"分享报告"}</span>
             </button>
             <button
               onClick={onGoHome ?? onRetry}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary py-3 transition-all active:scale-[0.96]"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
             >
-              <Home className="h-4.5 w-4.5 text-primary-foreground" />
-              <span className="text-sm font-bold text-primary-foreground">{"主页"}</span>
+              <Home className="h-5 w-5 text-foreground" />
+              <span className="text-sm font-bold text-foreground">{"返回主页"}</span>
             </button>
           </div>
         </div>
