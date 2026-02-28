@@ -34,7 +34,8 @@ function generateEvaluation(duration: number): EvaluationResult {
   const score = Math.min(baseScore + Math.floor(Math.random() * 8), 99)
   const breathStability = Math.min(50 + Math.floor(Math.random() * 45), 95)
   const toneBrightness = Math.min(55 + Math.floor(Math.random() * 40), 95)
-  const label = score >= 90 ? "S" : score >= 80 ? "A" : score >= 70 ? "B" : "C"
+  // Always give warm, encouraging labels — no "failure" feelings for elderly users
+  const label = score >= 90 ? "S" : "A"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -135,12 +136,12 @@ const timbreTags = [
   { name: "甜美", pct: 30, bg: "#C4A882" },
 ]
 
-/* ---------- Cheering line based on score ---------- */
+/* ---------- Cheering line based on score (always warm & encouraging) ---------- */
 function getCheerLine(score: number) {
   if (score >= 90) return "太棒了，您的声音充满故事感！"
   if (score >= 80) return "非常出色，继续保持这份热情！"
-  if (score >= 70) return "表现得很稳，再练练会更好！"
-  return "每一次开口都是进步，加油！"
+  if (score >= 70) return "表现得真好，越唱越有味道！"
+  return "每一次开口都是最美的旋律！"
 }
 
 export function ResultScreen({
@@ -198,13 +199,8 @@ export function ResultScreen({
     if (evaluation) onSave(evaluation)
   }, [evaluation, onSave])
 
-  const scoreLabel = evaluation?.label ?? "S"
-  const scoreLabelColor =
-    scoreLabel === "S"
-      ? "#D96B00"
-      : scoreLabel === "A"
-        ? "#E8A040"
-        : "#8A7D6F"
+  const scoreLabel = evaluation?.label ?? "A"
+  const scoreLabelColor = scoreLabel === "S" ? "#D96B00" : "#E8963A"
 
   return (
     <div
@@ -215,13 +211,19 @@ export function ResultScreen({
         <>
           {/* ==================== PART 1: Emotion & Core Conclusion ==================== */}
 
-          {/* Score Hero */}
-          <div className="flex flex-col items-center gap-3 px-6 pt-12 pb-2">
+          {/* Score Hero — warm radial glow */}
+          <div
+            className="flex flex-col items-center gap-3 px-6 pt-12 pb-4"
+            style={{
+              background: `radial-gradient(ellipse 60% 50% at 50% 30%, color-mix(in srgb, ${scoreLabelColor} 10%, transparent) 0%, transparent 100%)`,
+            }}
+          >
             {/* Level badge */}
             <div
-              className="flex h-20 w-20 items-center justify-center rounded-full"
+              className="flex h-22 w-22 items-center justify-center rounded-full shadow-lg"
               style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${scoreLabelColor} 15%, transparent), color-mix(in srgb, ${scoreLabelColor} 6%, transparent))`,
+                background: `linear-gradient(145deg, color-mix(in srgb, ${scoreLabelColor} 20%, white), color-mix(in srgb, ${scoreLabelColor} 8%, white))`,
+                boxShadow: `0 8px 32px color-mix(in srgb, ${scoreLabelColor} 18%, transparent)`,
               }}
             >
               <span className="text-5xl font-black" style={{ color: scoreLabelColor }}>
@@ -257,17 +259,21 @@ export function ResultScreen({
             </div>
           </div>
 
-          {/* Chat Entry Button */}
+          {/* Chat Entry Button — visually prominent */}
           <div className="mx-5 mt-4">
             <button
               onClick={onOpenChat}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl py-4 transition-all active:scale-[0.98]"
-              style={{ backgroundColor: "#FEF5EB" }}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-primary/20 bg-primary/10 py-4.5 shadow-sm transition-all active:scale-[0.97]"
             >
-              <MessageCircle className="h-5 w-5 text-primary" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary">
+                <MessageCircle className="h-5 w-5 text-primary-foreground" />
+              </div>
               <span className="text-lg font-bold text-primary">
                 {"对点评有疑问？和AI老师聊聊"}
               </span>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="ml-auto mr-1 text-primary">
+                <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
 
@@ -389,30 +395,33 @@ export function ResultScreen({
         </>
       )}
 
-      {/* ==================== STICKY BOTTOM BAR ==================== */}
+      {/* ==================== FLOATING BOTTOM BAR ==================== */}
       {showResult && evaluation && active && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-border bg-card/95 px-5 pb-8 pt-3 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
+        <div className="fixed inset-x-0 bottom-6 z-40 mx-auto w-[calc(100%-2.5rem)] max-w-[360px]">
+          <div
+            className="flex items-center gap-2 rounded-full bg-card px-3 py-2.5 shadow-xl"
+            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)" }}
+          >
             <button
               onClick={onRetry}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-secondary py-3 transition-all active:scale-[0.96]"
             >
-              <RotateCcw className="h-5 w-5 text-foreground" />
+              <RotateCcw className="h-4.5 w-4.5 text-foreground" />
               <span className="text-sm font-bold text-foreground">{"再唱一次"}</span>
             </button>
             <button
               onClick={handleShare}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-secondary py-3 transition-all active:scale-[0.96]"
             >
-              <Share2 className="h-5 w-5 text-foreground" />
-              <span className="text-sm font-bold text-foreground">{"分享报告"}</span>
+              <Share2 className="h-4.5 w-4.5 text-foreground" />
+              <span className="text-sm font-bold text-foreground">{"分享"}</span>
             </button>
             <button
               onClick={onGoHome ?? onRetry}
-              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl bg-secondary py-3.5 transition-all active:scale-[0.98]"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary py-3 transition-all active:scale-[0.96]"
             >
-              <Home className="h-5 w-5 text-foreground" />
-              <span className="text-sm font-bold text-foreground">{"返回主页"}</span>
+              <Home className="h-4.5 w-4.5 text-primary-foreground" />
+              <span className="text-sm font-bold text-primary-foreground">{"主页"}</span>
             </button>
           </div>
         </div>
