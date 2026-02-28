@@ -5,9 +5,9 @@ import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
 import { UploadDialog } from "./upload-dialog"
-import { AiChatDrawer } from "./ai-chat-drawer"
+import { ChatScreen } from "./chat-screen"
 
-type Screen = "recording" | "result" | "history"
+type Screen = "recording" | "result" | "history" | "chat"
 
 // Pre-populated demo records
 const initialRecords: HistoryRecord[] = [
@@ -22,13 +22,18 @@ export function VocalCoachApp() {
   const [records, setRecords] = useState<HistoryRecord[]>(initialRecords)
   const [isLoading, setIsLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
   const [chatFromResult, setChatFromResult] = useState(false)
+  const [prevScreen, setPrevScreen] = useState<Screen>("recording")
 
   const handleOpenChat = useCallback((fromResult = false) => {
     setChatFromResult(fromResult)
-    setChatOpen(true)
+    setPrevScreen(fromResult ? "result" : "recording")
+    setScreen("chat")
   }, [])
+
+  const handleBackFromChat = useCallback(() => {
+    setScreen(prevScreen)
+  }, [prevScreen])
 
   const handleRecordingComplete = useCallback((duration: number) => {
     setLastDuration(duration)
@@ -131,6 +136,16 @@ export function VocalCoachApp() {
         )}
       </div>
 
+      <div
+        className={`transition-all duration-500 ease-in-out ${
+          screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 absolute inset-0"
+        }`}
+      >
+        {screen === "chat" && (
+          <ChatScreen fromResult={chatFromResult} onBack={handleBackFromChat} />
+        )}
+      </div>
+
       {/* Loading Overlay - renders on top of everything */}
       <LoadingOverlay visible={isLoading} />
 
@@ -141,12 +156,7 @@ export function VocalCoachApp() {
         onUploadComplete={handleUploadComplete}
       />
 
-      {/* AI Chat Drawer */}
-      <AiChatDrawer
-        open={chatOpen}
-        onOpenChange={setChatOpen}
-        fromResult={chatFromResult}
-      />
+
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, MessageCircle } from "lucide-react"
+import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, ChevronRight } from "lucide-react"
 
 interface RecordingScreenProps {
   onComplete: (duration: number) => void
@@ -89,20 +89,38 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         </button>
       </div>
 
-      {/* Tips Card - only in idle */}
+      {/* Tips Card + Ask Teacher Card - only in idle */}
       {!isRecording && (
-        <div className="mt-6 rounded-3xl bg-card p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
-              <Music2 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">今日小贴士</p>
-              <p className="mt-1 text-base leading-relaxed text-muted-foreground">
-                唱歌前先做几次深呼吸，可以帮助放松喉咙，让声音更加饱满圆润。
-              </p>
+        <div className="mt-6 flex flex-col gap-3">
+          {/* Tips Card */}
+          <div className="rounded-3xl bg-card p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+                <Music2 className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-foreground">{"今日小贴士"}</p>
+                <p className="mt-1 text-base leading-relaxed text-muted-foreground">
+                  {"唱歌前先做几次深呼吸，可以帮助放松喉咙，让声音更加饱满圆润。"}
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* Ask AI Teacher Card */}
+          <button
+            onClick={onOpenChat}
+            className="flex w-full items-center gap-4 rounded-3xl bg-card p-5 shadow-sm transition-all active:scale-[0.98]"
+          >
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary shadow-md">
+              <span className="text-base font-black text-primary-foreground">AI</span>
+            </div>
+            <div className="flex flex-1 flex-col items-start">
+              <p className="text-lg font-bold text-foreground">{"有唱歌的疑问？"}</p>
+              <p className="text-sm text-muted-foreground">{"随时和AI声乐导师聊聊"}</p>
+            </div>
+            <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+          </button>
         </div>
       )}
 
@@ -212,17 +230,6 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
           </div>
         )}
       </div>
-
-      {/* FAB - Ask AI Teacher */}
-      <button
-        onClick={onOpenChat}
-        className="fixed bottom-28 right-5 z-40 flex items-center gap-2 rounded-full bg-primary py-3.5 pl-4 pr-5 shadow-lg transition-all active:scale-95"
-        style={{ maxWidth: "calc(100% - 40px)" }}
-        aria-label="问老师"
-      >
-        <MessageCircle className="h-7 w-7 text-primary-foreground" />
-        <span className="text-lg font-bold text-primary-foreground">问老师</span>
-      </button>
 
       {/* Confirm Dialog Overlay */}
       {showConfirm && (
