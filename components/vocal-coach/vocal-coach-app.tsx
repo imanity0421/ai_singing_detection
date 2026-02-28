@@ -1,11 +1,18 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
 import { UploadDialog } from "./upload-dialog"
-import { ChatScreen } from "./chat-screen"
+
+// Lazy-load ChatScreen so that the AI SDK bundle (~100KB+) is only fetched
+// when the user actually navigates to the chat page, keeping initial load fast.
+const ChatScreen = dynamic(
+  () => import("./chat-screen").then((m) => ({ default: m.ChatScreen })),
+  { ssr: false }
+)
 
 type Screen = "recording" | "result" | "history" | "chat"
 const VALID_SCREENS: Screen[] = ["recording", "result", "history", "chat"]

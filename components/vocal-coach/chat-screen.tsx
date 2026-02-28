@@ -60,9 +60,6 @@ const MOCK_ERROR_MESSAGE: UIMessage = {
   ],
 }
 
-// Stable transport instance — avoids re-creating on every render
-const chatTransport = new DefaultChatTransport({ api: "/api/chat" })
-
 export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
   const [inputMode, setInputMode] = useState<"voice" | "text">("voice")
   const [textValue, setTextValue] = useState("")
@@ -70,12 +67,18 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
   const [errorMessages, setErrorMessages] = useState<UIMessage[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
+  // Lazily create transport once per component instance (stable across re-renders)
+  const transportRef = useRef<DefaultChatTransport | null>(null)
+  if (!transportRef.current) {
+    transportRef.current = new DefaultChatTransport({ api: "/api/chat" })
+  }
+
   const initialMessages = fromResult
     ? INITIAL_MESSAGES_FROM_RESULT
     : INITIAL_MESSAGES_DEFAULT
 
   const { messages, sendMessage, status, error } = useChat({
-    transport: chatTransport,
+    transport: transportRef.current,
     initialMessages,
   })
 
