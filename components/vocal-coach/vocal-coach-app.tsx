@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
@@ -25,21 +25,6 @@ export function VocalCoachApp() {
   const [showUpload, setShowUpload] = useState(false)
   const [chatFromResult, setChatFromResult] = useState(false)
   const [prevScreen, setPrevScreen] = useState<Screen>("recording")
-
-  // Track which screens have been mounted so we keep them alive for smooth transitions
-  // Use a plain object instead of Set to avoid serialization issues
-  const [mountedScreens, setMountedScreens] = useState<Record<string, boolean>>({ recording: true })
-
-  // A key that increments to force ResultScreen remount when needed
-  const [resultKey, setResultKey] = useState(0)
-
-  // Ensure the current screen is always in the mounted set
-  useEffect(() => {
-    setMountedScreens((prev) => {
-      if (prev[screen]) return prev
-      return { ...prev, [screen]: true }
-    })
-  }, [screen])
 
   const handleOpenChat = useCallback((fromResult = false) => {
     setChatFromResult(fromResult)
@@ -69,12 +54,6 @@ export function VocalCoachApp() {
 
   const handleRetry = useCallback(() => {
     setScreen("recording")
-    // Force ResultScreen to remount with fresh data next time
-    setMountedScreens((prev) => {
-      const { result: _, ...rest } = prev
-      return rest
-    })
-    setResultKey((k) => k + 1)
   }, [])
 
   const handleSave = useCallback((evaluation: EvaluationResult) => {
@@ -91,12 +70,6 @@ export function VocalCoachApp() {
     setRecords((prev) => [newRecord, ...prev])
     // Navigate to history
     setScreen("history")
-    // Force ResultScreen to remount with fresh data next time
-    setMountedScreens((prev) => {
-      const { result: _, ...rest } = prev
-      return rest
-    })
-    setResultKey((k) => k + 1)
   }, [])
 
   const handleOpenHistory = useCallback(() => {
@@ -131,13 +104,13 @@ export function VocalCoachApp() {
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">
-      {/* Screen transitions - keep screens mounted to prevent white flash */}
+      {/* Screen transitions */}
       <div
         className={`transition-all duration-500 ease-in-out ${
           screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens["recording"] && (
+        {screen === "recording" && (
           <RecordingScreen
             onComplete={handleRecordingComplete}
             onUpload={handleOpenUpload}
@@ -153,9 +126,8 @@ export function VocalCoachApp() {
           screen === "result" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens["result"] && (
+        {screen === "result" && (
           <ResultScreen
-            key={resultKey}
             duration={lastDuration}
             onRetry={handleRetry}
             onSave={handleSave}
@@ -169,7 +141,7 @@ export function VocalCoachApp() {
           screen === "history" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens["history"] && (
+        {screen === "history" && (
           <HistoryScreen records={records} onBack={handleBackFromHistory} />
         )}
       </div>
@@ -179,7 +151,7 @@ export function VocalCoachApp() {
           screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {mountedScreens["chat"] && (
+        {screen === "chat" && (
           <ChatScreen fromResult={chatFromResult} onBack={handleBackFromChat} />
         )}
       </div>
