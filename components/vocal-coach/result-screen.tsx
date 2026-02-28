@@ -34,8 +34,8 @@ function generateEvaluation(duration: number): EvaluationResult {
   const score = Math.min(baseScore + Math.floor(Math.random() * 8), 99)
   const breathStability = Math.min(50 + Math.floor(Math.random() * 45), 95)
   const toneBrightness = Math.min(55 + Math.floor(Math.random() * 40), 95)
-  // Always give warm, encouraging labels — no "failure" feelings for elderly users
-  const label = score >= 90 ? "S" : "A"
+  // Always warm & encouraging — minimum A, no "failure" feelings for elderly users
+  const label = score >= 95 ? "SSS" : score >= 90 ? "SS" : score >= 80 ? "S" : "A"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -138,10 +138,10 @@ const timbreTags = [
 
 /* ---------- Cheering line based on score (always warm & encouraging) ---------- */
 function getCheerLine(score: number) {
+  if (score >= 95) return "惊艳全场！您就是天生的歌唱家！"
   if (score >= 90) return "太棒了，您的声音充满故事感！"
   if (score >= 80) return "非常出色，继续保持这份热情！"
-  if (score >= 70) return "表现得真好，越唱越有味道！"
-  return "每一次开口都是最美的旋律！"
+  return "表现得真好，越唱越有味道！"
 }
 
 export function ResultScreen({
@@ -200,7 +200,14 @@ export function ResultScreen({
   }, [evaluation, onSave])
 
   const scoreLabel = evaluation?.label ?? "A"
-  const scoreLabelColor = scoreLabel === "S" ? "#D96B00" : "#E8963A"
+  const scoreLabelColor =
+    scoreLabel === "SSS"
+      ? "#C2410C"
+      : scoreLabel === "SS"
+        ? "#D96B00"
+        : scoreLabel === "S"
+          ? "#E8963A"
+          : "#E8A040"
 
   return (
     <div
@@ -213,24 +220,51 @@ export function ResultScreen({
 
           {/* Score Hero — warm radial glow */}
           <div
-            className="flex flex-col items-center gap-3 px-6 pt-12 pb-4"
+            className="flex flex-col items-center gap-2 px-6 pt-12 pb-4"
             style={{
               background: `radial-gradient(ellipse 60% 50% at 50% 30%, color-mix(in srgb, ${scoreLabelColor} 10%, transparent) 0%, transparent 100%)`,
             }}
           >
-            {/* Level badge */}
+            {/* Level badge — pill shape to fit SSS */}
             <div
-              className="flex h-22 w-22 items-center justify-center rounded-full shadow-lg"
+              className="flex items-center justify-center rounded-full px-7 py-4 shadow-lg"
               style={{
                 background: `linear-gradient(145deg, color-mix(in srgb, ${scoreLabelColor} 20%, white), color-mix(in srgb, ${scoreLabelColor} 8%, white))`,
                 boxShadow: `0 8px 32px color-mix(in srgb, ${scoreLabelColor} 18%, transparent)`,
+                minWidth: 88,
+                minHeight: 88,
               }}
             >
-              <span className="text-5xl font-black" style={{ color: scoreLabelColor }}>
+              <span
+                className="font-black leading-none"
+                style={{
+                  color: scoreLabelColor,
+                  fontSize: scoreLabel.length >= 3 ? 36 : scoreLabel.length === 2 ? 42 : 52,
+                  letterSpacing: scoreLabel.length >= 2 ? "0.04em" : undefined,
+                }}
+              >
                 {scoreLabel}
               </span>
             </div>
-            <div className="flex items-baseline gap-1.5">
+
+            {/* Warm sub-label */}
+            <span
+              className="mt-1 rounded-lg px-4 py-1 text-sm font-bold"
+              style={{
+                backgroundColor: `color-mix(in srgb, ${scoreLabelColor} 10%, transparent)`,
+                color: scoreLabelColor,
+              }}
+            >
+              {scoreLabel === "SSS"
+                ? "超凡表现"
+                : scoreLabel === "SS"
+                  ? "卓越演唱"
+                  : scoreLabel === "S"
+                    ? "精彩绝伦"
+                    : "出色发挥"}
+            </span>
+
+            <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-6xl font-black text-foreground">{animatedScore}</span>
               <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
@@ -259,19 +293,35 @@ export function ResultScreen({
             </div>
           </div>
 
-          {/* Chat Entry Button — visually prominent */}
+          {/* Chat Entry Button — visually prominent with subtle glow */}
           <div className="mx-5 mt-4">
             <button
               onClick={onOpenChat}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-primary/20 bg-primary/10 py-4.5 shadow-sm transition-all active:scale-[0.97]"
+              className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-2xl border border-primary/15 px-5 py-4 shadow-sm transition-all active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--card)), color-mix(in srgb, var(--primary) 4%, var(--card)))",
+              }}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary">
+              {/* Subtle shimmer layer */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-40"
+                style={{
+                  background: "linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--primary) 8%, transparent) 50%, transparent 60%)",
+                }}
+              />
+              <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary shadow-md">
                 <MessageCircle className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-lg font-bold text-primary">
+              <span className="relative text-lg font-bold text-primary">
                 {"对点评有疑问？和AI老师聊聊"}
               </span>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="ml-auto mr-1 text-primary">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                className="relative ml-auto text-primary/60 transition-transform group-active:translate-x-0.5"
+              >
                 <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
