@@ -119,7 +119,8 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         <div className="mt-6">
           <button
             onClick={onOpenChat}
-            className="flex w-full items-center gap-4 rounded-3xl bg-primary/8 p-5 transition-all active:scale-[0.98]"
+            className="flex w-full items-center gap-4 rounded-3xl p-5 shadow-sm transition-all active:scale-[0.98]"
+            style={{ backgroundColor: "#FEF5EB" }}
           >
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary">
               <span className="text-sm font-black text-primary-foreground">AI</span>
@@ -128,7 +129,10 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               <p className="text-lg font-bold text-foreground">{"\u6709\u5531\u6B4C\u7684\u7591\u95EE\uFF1F"}</p>
               <p className="text-sm text-muted-foreground">{"\u968F\u65F6\u548CAI\u58F0\u4E50\u5BFC\u5E08\u804A\u804A"}</p>
             </div>
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/15">
+            <div
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
+              style={{ backgroundColor: "#FDDBB5" }}
+            >
               <ChevronRight className="h-4 w-4 text-primary" />
             </div>
           </button>
