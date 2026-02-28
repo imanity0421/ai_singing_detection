@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { RecordingScreen } from "./recording-screen"
 import { ResultScreen, LoadingOverlay, type EvaluationResult } from "./result-screen"
 import { HistoryScreen, type HistoryRecord } from "./history-screen"
@@ -26,11 +26,19 @@ export function VocalCoachApp() {
   const [chatFromResult, setChatFromResult] = useState(false)
   const [prevScreen, setPrevScreen] = useState<Screen>("recording")
 
+  // Track which screens have been visited so we can lazy-mount them
+  const visitedRef = useRef<Set<Screen>>(new Set(["recording"]))
+
+  const navigateTo = useCallback((target: Screen) => {
+    visitedRef.current.add(target)
+    setScreen(target)
+  }, [])
+
   const handleOpenChat = useCallback((fromResult = false) => {
     setChatFromResult(fromResult)
     setPrevScreen(fromResult ? "result" : "recording")
-    setScreen("chat")
-  }, [])
+    navigateTo("chat")
+  }, [navigateTo])
 
   const handleBackFromChat = useCallback(() => {
     setScreen(prevScreen)
@@ -47,14 +55,14 @@ export function VocalCoachApp() {
     }, 1800)
     // Done: transition to result
     setTimeout(() => {
-      setScreen("result")
+      navigateTo("result")
       setIsLoading(false)
     }, 4200)
-  }, [])
+  }, [navigateTo])
 
   const handleRetry = useCallback(() => {
-    setScreen("recording")
-  }, [])
+    navigateTo("recording")
+  }, [navigateTo])
 
   const handleSave = useCallback((evaluation: EvaluationResult) => {
     const now = new Date()
@@ -68,17 +76,16 @@ export function VocalCoachApp() {
       comment: evaluation.comment,
     }
     setRecords((prev) => [newRecord, ...prev])
-    // Navigate to history
-    setScreen("history")
-  }, [])
+    navigateTo("history")
+  }, [navigateTo])
 
   const handleOpenHistory = useCallback(() => {
-    setScreen("history")
-  }, [])
+    navigateTo("history")
+  }, [navigateTo])
 
   const handleBackFromHistory = useCallback(() => {
-    setScreen("recording")
-  }, [])
+    navigateTo("recording")
+  }, [navigateTo])
 
   const handleOpenUpload = useCallback(() => {
     setShowUpload(true)
@@ -97,20 +104,23 @@ export function VocalCoachApp() {
       setLoadingStage("analyzing")
     }, 1800)
     setTimeout(() => {
-      setScreen("result")
+      navigateTo("result")
       setIsLoading(false)
     }, 4200)
-  }, [])
+  }, [navigateTo])
+
+  // Helper: whether a screen should be mounted (once visited, stays mounted)
+  const shouldMount = (s: Screen) => visitedRef.current.has(s) || screen === s
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-md overflow-hidden bg-background">
-      {/* Screen transitions */}
+      {/* All screens stay mounted once visited - prevents state loss */}
       <div
         className={`transition-all duration-500 ease-in-out ${
           screen === "recording" ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "recording" && (
+        {shouldMount("recording") && (
           <RecordingScreen
             onComplete={handleRecordingComplete}
             onUpload={handleOpenUpload}
@@ -126,7 +136,7 @@ export function VocalCoachApp() {
           screen === "result" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "result" && (
+        {shouldMount("result") && (
           <ResultScreen
             duration={lastDuration}
             onRetry={handleRetry}
@@ -141,7 +151,7 @@ export function VocalCoachApp() {
           screen === "history" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "history" && (
+        {shouldMount("history") && (
           <HistoryScreen records={records} onBack={handleBackFromHistory} />
         )}
       </div>
@@ -151,7 +161,7 @@ export function VocalCoachApp() {
           screen === "chat" ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none absolute inset-0"
         }`}
       >
-        {screen === "chat" && (
+        {shouldMount("chat") && (
           <ChatScreen fromResult={chatFromResult} onBack={handleBackFromChat} />
         )}
       </div>
