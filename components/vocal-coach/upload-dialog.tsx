@@ -44,7 +44,7 @@ export function UploadDialog({ visible, onClose, onUploadComplete }: UploadDialo
     <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+        className="absolute inset-0 bg-foreground/30 backdrop-blur-sm"
         onClick={handleClose}
       />
 
