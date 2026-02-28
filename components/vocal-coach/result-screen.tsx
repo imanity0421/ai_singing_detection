@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { RotateCcw, Save, Sparkles, MessageCircle } from "lucide-react"
+import { RotateCcw, Save, Sparkles, MessageCircle, Upload } from "lucide-react"
 
 interface ResultScreenProps {
   duration: number
@@ -187,8 +187,10 @@ export function ResultScreen({ duration, onRetry, onSave, onOpenChat }: ResultSc
   )
 }
 
-/* Loading overlay component - used by parent */
-export function LoadingOverlay({ visible }: { visible: boolean }) {
+/* Loading overlay component - used by parent, supports 2-stage loading */
+export function LoadingOverlay({ visible, stage = "uploading" }: { visible: boolean; stage?: "uploading" | "analyzing" }) {
+  const isUploading = stage === "uploading"
+
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-500 ${
@@ -197,12 +199,20 @@ export function LoadingOverlay({ visible }: { visible: boolean }) {
     >
       <div className="flex flex-col items-center gap-6 rounded-3xl bg-card p-10 shadow-lg">
         <div className="relative">
-          <div className="h-20 w-20 animate-spin rounded-full border-4 border-secondary border-t-primary" style={{ animationDuration: "1.2s" }} />
-          <Sparkles className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-primary" />
+          <div className="h-20 w-20 animate-spin rounded-full border-4 border-secondary border-t-primary" style={{ animationDuration: isUploading ? "1.6s" : "1.2s" }} />
+          {isUploading ? (
+            <Upload className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 text-primary" />
+          ) : (
+            <Sparkles className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-primary" />
+          )}
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-bold text-foreground">老师正在批改...</p>
-          <p className="mt-2 text-lg text-muted-foreground">请稍候片刻</p>
+        <div className="text-center transition-opacity duration-300">
+          <p className="text-2xl font-bold text-foreground">
+            {isUploading ? "作品上传中..." : "老师正在点评..."}
+          </p>
+          <p className="mt-2 text-lg text-muted-foreground">
+            {isUploading ? "正在上传您的演唱" : "请稍候片刻"}
+          </p>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, ChevronRight, Play, Pause, RotateCcw, Send } from "lucide-react"
+import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, ChevronRight, Play, Pause, RotateCcw } from "lucide-react"
 
 const TIPS = [
   "\u5531\u6B4C\u524D\u505A\u51E0\u6B21\u6DF1\u547C\u5438\uFF0C\u58F0\u97F3\u66F4\u52A0\u9971\u6EE1",
@@ -203,9 +203,6 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         {isRecording ? (
           /* --- Recording State --- */
           <div className="flex w-full flex-col items-center gap-6">
-            {/* Enhanced Recording Feedback Banner */}
-            {!showConfirm && <RecordingPulseHint />}
-
             {/* Timer */}
             <div className="flex flex-col items-center gap-2">
               <span className="text-6xl font-black tracking-wider text-foreground tabular-nums">
@@ -229,78 +226,96 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               ))}
             </div>
 
-            <p className="text-center text-lg font-medium text-muted-foreground">
-              {showConfirm ? "录音已暂停" : "正在聆听，请尽情歌唱..."}
-            </p>
+            {/* Enhanced bottom status text */}
+            {showConfirm ? (
+              <p className="text-center text-lg font-medium text-muted-foreground">
+                {"录音已暂停"}
+              </p>
+            ) : (
+              <div className="flex items-center justify-center gap-2.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" style={{ animationDuration: "1.5s" }} />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary/80" />
+                </span>
+                <RecordingStatusText />
+              </div>
+            )}
           </div>
         ) : isPreview ? (
           /* --- Preview / 试听 State --- */
-          <div className="flex w-full flex-col items-center gap-6">
-            {/* Friendly header */}
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Music2 className="h-8 w-8 text-primary" />
-              </div>
+          <div className="flex w-full flex-col items-center gap-8">
+            {/* Header text */}
+            <div className="flex flex-col items-center gap-1.5">
               <p className="text-center text-2xl font-black text-foreground">
-                {"录音完成啦！"}
+                {"录音完成"}
               </p>
-              <p className="text-center text-lg text-muted-foreground">
-                {"要不要先听听看？"}
+              <p className="text-center text-base text-muted-foreground">
+                {"先回听一下，满意再提交"}
               </p>
             </div>
 
-            {/* Playback Card */}
+            {/* Playback Card - redesigned */}
             <div className="w-full rounded-3xl bg-card p-6 shadow-sm">
-              {/* Duration info */}
-              <div className="mb-4 flex items-center justify-between">
-                <span className="text-base font-medium text-muted-foreground">{"本次录音"}</span>
-                <span className="text-lg font-bold text-foreground">{formatTime(recordedDuration)}</span>
+              {/* Central play button area with disc visual */}
+              <div className="mb-6 flex flex-col items-center">
+                <div className="relative flex h-32 w-32 items-center justify-center">
+                  {/* Background ring */}
+                  <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 128 128">
+                    <circle cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="4" className="text-secondary" />
+                    <circle
+                      cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="4"
+                      className="text-primary transition-all duration-150 ease-linear"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 58}`}
+                      strokeDashoffset={`${2 * Math.PI * 58 * (1 - Math.min(playbackProgress, 100) / 100)}`}
+                    />
+                  </svg>
+                  {/* Play / Pause button */}
+                  <button
+                    onClick={playbackProgress >= 100 ? handleReplay : togglePlayback}
+                    className="relative flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/25 transition-all active:scale-95"
+                    aria-label={isPlaying ? "暂停" : "播放"}
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-8 w-8 text-primary-foreground" />
+                    ) : (
+                      <Play className="ml-1 h-8 w-8 text-primary-foreground" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Time display */}
+              <div className="mb-3 flex items-center justify-between text-base text-muted-foreground">
+                <span className="tabular-nums">{formatTime(Math.floor((playbackProgress / 100) * recordedDuration))}</span>
+                <span className="tabular-nums">{formatTime(recordedDuration)}</span>
               </div>
 
               {/* Progress bar */}
-              <div className="mb-4 h-3 overflow-hidden rounded-full bg-secondary">
+              <div className="mb-5 h-2.5 overflow-hidden rounded-full bg-secondary">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-150 ease-linear"
                   style={{ width: `${Math.min(playbackProgress, 100)}%` }}
                 />
               </div>
 
-              {/* Playback time */}
-              <div className="mb-5 flex items-center justify-between text-sm text-muted-foreground">
-                <span>{formatTime(Math.floor((playbackProgress / 100) * recordedDuration))}</span>
-                <span>{formatTime(recordedDuration)}</span>
-              </div>
-
-              {/* Play / Replay controls */}
-              <div className="flex items-center justify-center gap-6">
-                {/* Replay */}
+              {/* Replay from start */}
+              <div className="flex items-center justify-center">
                 <button
                   onClick={handleReplay}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary transition-all active:scale-95"
+                  className="flex items-center gap-2 rounded-2xl px-5 py-2.5 text-base font-bold text-muted-foreground transition-all active:scale-95"
+                  style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
                   aria-label="从头播放"
                 >
-                  <RotateCcw className="h-5 w-5 text-foreground" />
+                  <RotateCcw className="h-4 w-4" />
+                  <span>{"从头播放"}</span>
                 </button>
-                {/* Play / Pause */}
-                <button
-                  onClick={playbackProgress >= 100 ? handleReplay : togglePlayback}
-                  className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/25 transition-all active:scale-95"
-                  aria-label={isPlaying ? "暂停" : "播放"}
-                >
-                  {isPlaying ? (
-                    <Pause className="h-7 w-7 text-primary-foreground" />
-                  ) : (
-                    <Play className="ml-1 h-7 w-7 text-primary-foreground" />
-                  )}
-                </button>
-                {/* Spacer for symmetry */}
-                <div className="h-12 w-12" />
               </div>
             </div>
 
             {/* Encouraging note */}
-            <p className="max-w-[280px] text-center text-base leading-relaxed text-muted-foreground">
-              {"满意的话就提交给AI老师点评吧，不满意也可以重新录一次哦"}
+            <p className="text-center text-base leading-relaxed text-muted-foreground">
+              {"不满意可以重新录，没有次数限制"}
             </p>
           </div>
         ) : (
@@ -407,8 +422,8 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               onClick={handleSubmitFromPreview}
               className="flex flex-[2] items-center justify-center gap-3 rounded-3xl bg-primary py-5 text-2xl font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.98]"
             >
-              <Send className="h-6 w-6" />
-              <span>提交点评</span>
+              <Upload className="h-6 w-6" />
+              <span>上传并提交点评</span>
             </button>
           </div>
         )}
@@ -462,34 +477,24 @@ function NoteOrbit() {
   )
 }
 
-/* Animated "Recording in progress" hint with gentle pulse */
-function RecordingPulseHint() {
+/* Enhanced recording status text with animated dots (no layout shift) */
+function RecordingStatusText() {
   const [dotCount, setDotCount] = useState(1)
 
   useEffect(() => {
     const interval = setInterval(() => {
       setDotCount((prev) => (prev % 3) + 1)
-    }, 600)
+    }, 500)
     return () => clearInterval(interval)
   }, [])
 
-  const dots = ".".repeat(dotCount)
-
   return (
-    <div className="flex w-full items-center justify-center">
-      <div className="relative flex items-center gap-3 rounded-2xl px-6 py-3" style={{ backgroundColor: "rgba(247, 128, 0, 0.08)" }}>
-        {/* Gentle breathing glow behind */}
-        <div className="absolute inset-0 animate-pulse rounded-2xl" style={{ backgroundColor: "rgba(247, 128, 0, 0.04)" }} />
-        {/* Mic icon with ring animation */}
-        <div className="relative flex h-8 w-8 items-center justify-center">
-          <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: "2s" }} />
-          <Mic className="relative h-5 w-5 text-primary" />
-        </div>
-        <span className="text-lg font-bold text-primary">
-          {"正在收音中，请放心演唱"}{dots}
-        </span>
-      </div>
-    </div>
+    <span className="text-lg font-bold text-primary">
+      {"正在收音中，请放心演唱"}
+      <span className="inline-block w-[1.5em] text-left">
+        {".".repeat(dotCount)}
+      </span>
+    </span>
   )
 }
 

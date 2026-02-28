@@ -21,6 +21,7 @@ export function VocalCoachApp() {
   const [lastDuration, setLastDuration] = useState(0)
   const [records, setRecords] = useState<HistoryRecord[]>(initialRecords)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingStage, setLoadingStage] = useState<"uploading" | "analyzing">("uploading")
   const [showUpload, setShowUpload] = useState(false)
   const [chatFromResult, setChatFromResult] = useState(false)
   const [prevScreen, setPrevScreen] = useState<Screen>("recording")
@@ -37,13 +38,18 @@ export function VocalCoachApp() {
 
   const handleRecordingComplete = useCallback((duration: number) => {
     setLastDuration(duration)
-    // Show loading overlay on top of current screen
+    // Stage 1: uploading
+    setLoadingStage("uploading")
     setIsLoading(true)
-    // After loading, transition to result
+    // Stage 2: analyzing (after upload finishes)
+    setTimeout(() => {
+      setLoadingStage("analyzing")
+    }, 1800)
+    // Done: transition to result
     setTimeout(() => {
       setScreen("result")
       setIsLoading(false)
-    }, 2800)
+    }, 4200)
   }, [])
 
   const handleRetry = useCallback(() => {
@@ -85,11 +91,15 @@ export function VocalCoachApp() {
   const handleUploadComplete = useCallback((duration: number) => {
     setShowUpload(false)
     setLastDuration(duration)
+    setLoadingStage("uploading")
     setIsLoading(true)
+    setTimeout(() => {
+      setLoadingStage("analyzing")
+    }, 1800)
     setTimeout(() => {
       setScreen("result")
       setIsLoading(false)
-    }, 2800)
+    }, 4200)
   }, [])
 
   return (
@@ -147,7 +157,7 @@ export function VocalCoachApp() {
       </div>
 
       {/* Loading Overlay - renders on top of everything */}
-      <LoadingOverlay visible={isLoading} />
+      <LoadingOverlay visible={isLoading} stage={loadingStage} />
 
       {/* Upload Dialog */}
       <UploadDialog
