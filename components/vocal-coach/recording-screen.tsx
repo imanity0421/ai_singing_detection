@@ -3,6 +3,16 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Upload, Mic, ArrowLeft, Check, Music2, Trophy, ChevronRight } from "lucide-react"
 
+const TIPS = [
+  "\u5531\u6B4C\u524D\u505A\u51E0\u6B21\u6DF1\u547C\u5438\uFF0C\u58F0\u97F3\u66F4\u52A0\u9971\u6EE1",
+  "\u7528\u8179\u90E8\u53D1\u529B\uFF0C\u5589\u5499\u4F1A\u66F4\u8F7B\u677E",
+  "\u5531\u9AD8\u97F3\u65F6\u60F3\u8C61\u58F0\u97F3\u5F80\u524D\u9001\uFF0C\u522B\u5F80\u4E0A\u62BD",
+  "\u6BCF\u5929\u7EC3\u4E60\u54FC\u9E23\uFF0C\u80FD\u6709\u6548\u6253\u5F00\u5171\u9E23",
+  "\u5531\u6B4C\u65F6\u4FDD\u6301\u5FAE\u7B11\uFF0C\u97F3\u8272\u4F1A\u66F4\u660E\u4EAE",
+  "\u591A\u559D\u6E29\u6C34\uFF0C\u5C11\u559D\u51B0\u6C34\uFF0C\u4FDD\u62A4\u597D\u55D3\u5B50",
+  "\u5531\u6162\u6B4C\u65F6\u6CE8\u610F\u6C14\u606F\u7684\u8FDE\u8D2F\u6027",
+]
+
 interface RecordingScreenProps {
   onComplete: (duration: number) => void
   onUpload: () => void
@@ -16,6 +26,21 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
   const [phase, setPhase] = useState<"idle" | "recording">("idle")
   const [showConfirm, setShowConfirm] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * TIPS.length))
+  const [tipFade, setTipFade] = useState(true)
+
+  // Rotate tips every 5 seconds with fade
+  useEffect(() => {
+    if (phase !== "idle") return
+    const timer = setInterval(() => {
+      setTipFade(false)
+      setTimeout(() => {
+        setTipIndex((prev) => (prev + 1) % TIPS.length)
+        setTipFade(true)
+      }, 400)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [phase])
 
   const startRecording = useCallback(() => {
     setPhase("recording")
@@ -89,25 +114,9 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
         </button>
       </div>
 
-      {/* Tips Card + Ask Teacher Card - only in idle */}
+      {/* Ask AI Teacher Card - only in idle */}
       {!isRecording && (
-        <div className="mt-6 flex flex-col gap-3">
-          {/* Tips Card */}
-          <div className="rounded-3xl bg-card p-5 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10">
-                <Music2 className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-foreground">{"今日小贴士"}</p>
-                <p className="mt-1 text-base leading-relaxed text-muted-foreground">
-                  {"唱歌前先做几次深呼吸，可以帮助放松喉咙，让声音更加饱满圆润。"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Ask AI Teacher Card */}
+        <div className="mt-6">
           <button
             onClick={onOpenChat}
             className="flex w-full items-center gap-4 rounded-3xl bg-card p-5 shadow-sm transition-all active:scale-[0.98]"
@@ -116,8 +125,8 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               <span className="text-base font-black text-primary-foreground">AI</span>
             </div>
             <div className="flex flex-1 flex-col items-start">
-              <p className="text-lg font-bold text-foreground">{"有唱歌的疑问？"}</p>
-              <p className="text-sm text-muted-foreground">{"随时和AI声乐导师聊聊"}</p>
+              <p className="text-lg font-bold text-foreground">{"\u6709\u5531\u6B4C\u7684\u7591\u95EE\uFF1F"}</p>
+              <p className="text-sm text-muted-foreground">{"\u968F\u65F6\u548CAI\u58F0\u4E50\u5BFC\u5E08\u804A\u804A"}</p>
             </div>
             <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
           </button>
@@ -175,8 +184,13 @@ export function RecordingScreen({ onComplete, onUpload, onOpenHistory, historyCo
               {/* Spinning note decorations */}
               <NoteOrbit />
             </div>
-            <p className="text-center text-xl font-bold text-foreground">准备好了吗？</p>
-            <p className="text-center text-base text-muted-foreground">录一首歌，让AI老师为您打分</p>
+            <p className="text-center text-xl font-bold text-foreground">{"\u51C6\u5907\u597D\u4E86\u5417\uFF1F"}</p>
+            <p
+              className={`text-center text-base text-muted-foreground transition-opacity duration-400 ${tipFade ? "opacity-100" : "opacity-0"}`}
+              suppressHydrationWarning
+            >
+              {TIPS[tipIndex]}
+            </p>
           </div>
         )}
       </div>
