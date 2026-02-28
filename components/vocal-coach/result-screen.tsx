@@ -28,66 +28,55 @@ export interface EvaluationResult {
   comment: string
 }
 
-/* ---------- Grade palette: A / S / SS / SSS (no B/C — always positive) ---------- */
+/* ---------- Grade palette: A / S / SS / SSS ---------- */
 const GRADE_CONFIG: Record<
   string,
   {
-    color: string
-    colorEnd: string
+    from: string
+    to: string
     glow: string
-    ring: string
     subtitle: string
     cheer: string
-    /** Decorative ring count — higher grade → more ceremony */
-    rings: number
   }
 > = {
   SSS: {
-    color: "#B93A04",
-    colorEnd: "#E86A20",
-    glow: "rgba(185,58,4,0.24)",
-    ring: "rgba(185,58,4,0.38)",
+    from: "#C04000",
+    to: "#E87430",
+    glow: "rgba(192,64,0,0.32)",
     subtitle: "超凡表现",
     cheer: "惊艳全场！您就是天生的歌唱家！",
-    rings: 3,
   },
   SS: {
-    color: "#C85A00",
-    colorEnd: "#F09030",
-    glow: "rgba(200,90,0,0.20)",
-    ring: "rgba(200,90,0,0.32)",
+    from: "#D06800",
+    to: "#F09838",
+    glow: "rgba(208,104,0,0.24)",
     subtitle: "卓越演唱",
     cheer: "太棒了，您的声音充满故事感！",
-    rings: 2,
   },
   S: {
-    color: "#D97B1A",
-    colorEnd: "#F0B050",
-    glow: "rgba(217,123,26,0.16)",
-    ring: "rgba(217,123,26,0.26)",
+    from: "#DA8A18",
+    to: "#F0B850",
+    glow: "rgba(218,138,24,0.20)",
     subtitle: "精彩绝伦",
     cheer: "非常出色，继续保持这份热情！",
-    rings: 2,
   },
   A: {
-    color: "#D4922E",
-    colorEnd: "#F0C868",
-    glow: "rgba(212,146,46,0.14)",
-    ring: "rgba(212,146,46,0.22)",
+    from: "#D8A030",
+    to: "#F0CC60",
+    glow: "rgba(216,160,48,0.16)",
     subtitle: "出色发挥",
     cheer: "表现得真好，越唱越有味道！",
-    rings: 1,
   },
 }
 
-// Score floor = 72, guaranteeing every user at least an A
+// Score floor = 80, guaranteeing every user at least S
 function generateEvaluation(duration: number): EvaluationResult {
-  const rawBase = Math.min(60 + Math.floor(duration / 3), 98)
+  const rawBase = Math.min(68 + Math.floor(duration / 3), 98)
   const raw = Math.min(rawBase + Math.floor(Math.random() * 8), 99)
-  const score = Math.max(raw, 72)
+  const score = Math.max(raw, 80)
   const breathStability = Math.min(60 + Math.floor(Math.random() * 35), 95)
   const toneBrightness = Math.min(60 + Math.floor(Math.random() * 35), 95)
-  const label = score >= 93 ? "SSS" : score >= 85 ? "SS" : score >= 78 ? "S" : "A"
+  const label = score >= 93 ? "SSS" : score >= 87 ? "SS" : score >= 80 ? "S" : "A"
 
   const comments = [
     "您的声音很有厚度，听起来精气神十足！",
@@ -245,8 +234,8 @@ export function ResultScreen({
     if (evaluation) onSave(evaluation)
   }, [evaluation, onSave])
 
-  const scoreLabel = evaluation?.label ?? "A"
-  const grade = GRADE_CONFIG[scoreLabel] ?? GRADE_CONFIG.A
+  const scoreLabel = evaluation?.label ?? "S"
+  const grade = GRADE_CONFIG[scoreLabel] ?? GRADE_CONFIG.S
 
   return (
     <div
@@ -257,97 +246,68 @@ export function ResultScreen({
         <>
           {/* ==================== PART 1: Emotion & Core Conclusion ==================== */}
 
-          {/* Score Hero — warm radial glow */}
+          {/* ---- Score Hero: typography-driven, no rings ---- */}
           <div
-            className="flex flex-col items-center gap-2 px-6 pt-10 pb-4"
+            className="relative flex flex-col items-center px-6 pt-12 pb-5"
             style={{
-              background: `radial-gradient(ellipse 80% 60% at 50% 22%, ${grade.glow} 0%, transparent 100%)`,
+              background: `radial-gradient(ellipse 70% 50% at 50% 18%, ${grade.glow} 0%, transparent 100%)`,
             }}
           >
-            {/* Achievement badge — layered rings */}
-            <div
-              className="relative flex items-center justify-center"
-              style={{ width: 140, height: 140 }}
-            >
-              {/* Soft halo */}
+            {/* Large gradient grade letter */}
+            <div className="relative">
+              {/* Glow behind text */}
               <div
-                className="absolute rounded-full"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  inset: -10,
-                  background: `radial-gradient(circle, ${grade.ring} 0%, transparent 70%)`,
-                  filter: "blur(10px)",
+                  width: 120,
+                  height: 120,
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, ${grade.glow} 0%, transparent 65%)`,
+                  filter: "blur(20px)",
                 }}
               />
-              {/* Extra ring 3 (SSS only) */}
-              {grade.rings >= 3 && (
-                <div
-                  className="absolute rounded-full"
-                  style={{ inset: -4, border: `2px solid ${grade.color}25` }}
-                />
-              )}
-              {/* Extra ring 2 (SS / SSS) */}
-              {grade.rings >= 2 && (
-                <div
-                  className="absolute rounded-full"
-                  style={{ inset: 2, border: `1.5px dashed ${grade.color}20` }}
-                />
-              )}
-              {/* Conic gradient ring */}
-              <div
-                className="absolute rounded-full"
+              <span
+                className="relative block font-black leading-none"
                 style={{
-                  inset: 8,
-                  background: `conic-gradient(from 0deg, ${grade.color}20, ${grade.color}48, ${grade.color}20, ${grade.color}48, ${grade.color}20)`,
-                }}
-              />
-              {/* Inner fill */}
-              <div
-                className="absolute rounded-full"
-                style={{ inset: 12, background: `linear-gradient(150deg, ${grade.color}28, ${grade.colorEnd}18)` }}
-              />
-              {/* Central disc */}
-              <div
-                className="relative z-10 flex items-center justify-center rounded-full"
-                style={{
-                  width: 104,
-                  height: 104,
-                  background: `linear-gradient(150deg, color-mix(in srgb, ${grade.color} 13%, white), color-mix(in srgb, ${grade.colorEnd} 7%, white))`,
-                  boxShadow: `0 10px 36px ${grade.glow}, inset 0 2px 6px rgba(255,255,255,0.75), inset 0 -2px 4px ${grade.color}10`,
+                  fontSize: scoreLabel.length >= 3 ? 72 : scoreLabel.length === 2 ? 84 : 96,
+                  letterSpacing: scoreLabel.length >= 2 ? "0.06em" : "0.02em",
+                  background: `linear-gradient(160deg, ${grade.from}, ${grade.to})`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: `drop-shadow(0 4px 16px ${grade.glow})`,
                 }}
               >
-                <span
-                  className="font-black leading-none tracking-wide"
-                  style={{
-                    color: grade.color,
-                    fontSize: scoreLabel.length >= 3 ? 32 : scoreLabel.length === 2 ? 40 : 52,
-                    textShadow: `0 2px 12px ${grade.glow}`,
-                  }}
-                >
-                  {scoreLabel}
-                </span>
-              </div>
+                {scoreLabel}
+              </span>
             </div>
 
-            {/* Sub-label pill */}
+            {/* Subtitle pill */}
             <span
-              className="mt-1 rounded-full px-6 py-1.5 text-base font-bold tracking-widest"
+              className="mt-3 rounded-full px-5 py-1 text-sm font-bold tracking-widest"
               style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${grade.color} 14%, transparent), color-mix(in srgb, ${grade.colorEnd} 10%, transparent))`,
-                color: grade.color,
-                boxShadow: `0 2px 8px ${grade.glow}`,
+                backgroundColor: `color-mix(in srgb, ${grade.from} 10%, transparent)`,
+                color: grade.from,
               }}
             >
               {grade.subtitle}
             </span>
 
+            {/* Thin decorative divider */}
+            <div
+              className="mt-5 mb-4 h-px w-16 rounded-full"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${grade.from}40, transparent)`,
+              }}
+            />
+
             {/* Numeric score */}
-            <div className="mt-3 flex items-baseline gap-1.5">
-              <span className="text-6xl font-black text-foreground">{animatedScore}</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-7xl font-black leading-none text-foreground">{animatedScore}</span>
               <span className="text-xl font-bold text-muted-foreground">{"分"}</span>
             </div>
 
-            {/* Cheer text */}
-            <p className="mt-1 max-w-[280px] text-center text-lg leading-relaxed font-medium text-muted-foreground text-balance">
+            {/* Cheer */}
+            <p className="mt-3 max-w-[260px] text-center text-base leading-relaxed text-muted-foreground text-balance">
               {grade.cheer}
             </p>
           </div>
