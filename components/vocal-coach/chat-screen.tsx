@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo, useId } from "react"
 import { ArrowLeft, Mic, Keyboard, Send, Loader2 } from "lucide-react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
@@ -49,15 +49,12 @@ const INITIAL_MESSAGES_FROM_RESULT: UIMessage[] = [
 ]
 
 // ---------- Mock fallback message for when API fails ----------
-const MOCK_ERROR_MESSAGE: UIMessage = {
-  id: "ai-mock-error",
-  role: "assistant",
-  parts: [
-    {
-      type: "text",
-      text: "系统提示：请先在 .env.local 中配置 OPENAI_API_BASE 与 OPENAI_API_KEY 后即可与 AI 导师对话哦~",
-    },
-  ],
+function buildErrorMessage(apiError?: unknown): string {
+  const base = "AI 对话暂时不可用。请确认已在项目根目录 .env.local 中配置 OPENAI_API_BASE 与 OPENAI_API_KEY，保存后重启开发服务器（重新运行 npm run dev）。"
+  const extra = " 若已配置仍失败，请在浏览器打开 /api/chat/config 检查服务端是否读到配置。"
+  const msg = apiError instanceof Error ? apiError.message : String(apiError ?? "")
+  if (msg && !msg.includes("OPENAI")) return `${base}${extra}\n\n错误信息：${msg}`
+  return base + extra
 }
 
 export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
@@ -66,13 +63,19 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
   const [isHolding, setIsHolding] = useState(false)
   const [errorMessages, setErrorMessages] = useState<UIMessage[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const chatId = useId()
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/chat" }),
+    []
+  )
 
   const initialMessages = fromResult
     ? INITIAL_MESSAGES_FROM_RESULT
     : INITIAL_MESSAGES_DEFAULT
 
   const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    id: chatId,
+    transport,
     initialMessages,
   })
 
@@ -92,11 +95,18 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
   // ---------- Error handling: render mock AI response ----------
   useEffect(() => {
     if (error) {
+      const text = buildErrorMessage(error)
       setErrorMessages((prev) => {
-        // Only add one error message per error
         const lastErr = prev[prev.length - 1]
-        if (lastErr && lastErr.id === MOCK_ERROR_MESSAGE.id) return prev
-        return [...prev, { ...MOCK_ERROR_MESSAGE, id: `ai-error-${Date.now()}` }]
+        if (lastErr?.id?.startsWith("ai-error-")) return prev
+        return [
+          ...prev,
+          {
+            id: `ai-error-${Date.now()}`,
+            role: "assistant",
+            parts: [{ type: "text" as const, text }],
+          },
+        ]
       })
     }
   }, [error])
@@ -121,8 +131,8 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
   const allMessages = [...messages, ...errorMessages]
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
-      {/* Top Navigation Bar */}
+    <div className="flex h-dvh min-h-dvh flex-col overflow-hidden bg-background">
+      {/* Top Navigation Bar：固定在顶部，不随消息滚动 */}
       <header className="flex flex-shrink-0 items-center gap-3 border-b border-border bg-card px-4 pb-4 pt-12">
         <button
           onClick={onBack}
@@ -149,10 +159,10 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
         </div>
       </header>
 
-      {/* Chat Messages Area */}
+      {/* Chat Messages Area：仅此区域可滚动，head 与 bottom 始终在视口内 */}
       <div
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto px-5 py-5"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-5 py-5"
       >
         <div className="flex flex-col gap-5">
           {allMessages.map((msg) => (
@@ -184,7 +194,7 @@ export function ChatScreen({ fromResult = false, onBack }: ChatScreenProps) {
         </div>
       </div>
 
-      {/* Bottom Input Area -- voice-first, senior-friendly */}
+      {/* Bottom Input Area：固定在底部，不随消息滚动 */}
       <div className="flex-shrink-0 border-t border-border bg-card px-5 pb-8 pt-4">
         {inputMode === "voice" ? (
           <div className="flex items-center gap-3">

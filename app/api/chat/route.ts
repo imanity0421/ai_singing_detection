@@ -25,18 +25,21 @@ export async function POST(req: Request) {
     }
 
     const { baseURL, apiKey, model } = getOpenAIChatConfig()
-    if (!apiKey) {
+    // 若集中配置未读到 Key，再尝试直接读 env（排除模块缓存/加载顺序问题）
+    const resolvedKey = apiKey || process.env.OPENAI_API_KEY || ""
+    const resolvedBase = baseURL || process.env.OPENAI_API_BASE || "https://api.openai.com/v1"
+    if (!resolvedKey) {
       return Response.json(
         {
           error: "AI 服务未配置",
           detail: "OPENAI_API_KEY 未配置",
-          hint: "请在 .env.local 中设置 OPENAI_API_KEY，并重启开发服务器。参见 .env.example 与 docs/LLM_SETUP.md。",
+          hint: "请确认：1) 项目根目录下有 .env.local；2) 文件内有 OPENAI_API_BASE 与 OPENAI_API_KEY；3) 保存后已重启开发服务器（重新运行 npm run dev）。可访问 /api/chat/config 检查服务端是否读到配置。",
         },
         { status: 500 }
       )
     }
 
-    const openai = createOpenAI({ baseURL, apiKey })
+    const openai = createOpenAI({ baseURL: resolvedBase, apiKey: resolvedKey })
     const result = streamText({
       model: openai(model),
       system: OPENAI_CHAT_SYSTEM_PROMPT,
